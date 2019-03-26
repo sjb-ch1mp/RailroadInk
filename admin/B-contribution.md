@@ -1,7 +1,7 @@
 We declare that the work toward our submission of Stage B was distributed among the group members as follows:
 
-* u2345678 30
-* u3456789 40
-* u0234567 30
+* u5380100 33.33
+* u6126217 33.33
+* u6136358 33.33
 
-Signed: Mary Jones (u2345678), Bob Smith (u3456789), and Sue Black (u0234567)
+Signed: Samuel Brookes (u5380100), Baohong Tan (u6126217), and Thoraya Al-Sabti (u6136358)

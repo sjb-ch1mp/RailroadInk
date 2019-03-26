@@ -14,6 +14,23 @@ public class RailroadInk {
      * @return true if the tile placement is well formed
      */
     public static boolean isTilePlacementWellFormed(String tilePlacementString) {
+        char first = tilePlacementString.charAt(0);
+        char second = tilePlacementString.charAt(1);
+        char third = tilePlacementString.charAt(2);
+        char fourth = tilePlacementString.charAt(3);
+        char fifth = tilePlacementString.charAt(4);
+
+        if (first =='A' || first == 'B' || first == 'S' ) {
+            if (second >= '0' && second <= '5' || second >= '0' && second <= '2') {
+                if (third >= 'A' && third <= 'G') {
+                    if (fourth >= '0' && fourth <= '6') {
+                        if (fifth >= '0' && fifth <= '7') {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
         // FIXME Task 2: determine whether a tile placement is well-formed
         return false;
     }
