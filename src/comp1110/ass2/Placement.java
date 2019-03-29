@@ -14,16 +14,26 @@ public class Placement
     public Placement(String placementString)
     {
         //constructs a placement from a placementString
+        type = placementString.charAt(0);
+        id = placementString.charAt(1);
+        row = placementString.charAt(2);
+        column = Integer.parseInt(placementString.substring(3, 4));
+        orientation = Integer.parseInt(placementString.substring(4));
     }
 
     public Placement(Tile tile)
     {
         //constructs a placement from a Tile (no row and column data)
+        type = tile.getId().charAt(0);
+        id = tile.getId().charAt(1);
+        orientation = tile.getOrientation();
     }
 
     public void updateCoordinates(String coords)
     {
         //updates the row and column fields of the placement (passed from the name of the ImageView in the board)
+        row = coords.charAt(0);
+        column = Integer.parseInt(coords.substring(1));
     }
 
     public char getType()
@@ -60,5 +70,6 @@ public class Placement
     public String toString()
     {
         //returns the fields as a valid placement string
+        return "" + type + id + row + column + orientation;
     }
 }
