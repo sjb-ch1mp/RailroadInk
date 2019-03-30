@@ -1,6 +1,7 @@
 package comp1110.ass2;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -66,48 +67,50 @@ public class Board
             return false;
         }
 
-        //check for any illegal connections
         if(noIllegalConnections(newTile))
-        {
-            //check for legal edge connection
+        { //if there are no ILLEGAL connections
+
+            //check for a legal edge connection
             if(exitCoords.containsKey(newTile.getCoords()))
             { //tile has been placed on an exit tile
                 placements.put(newTile.getCoords(), newTile);
                 return true;
             }
             else
-            { //tile has been placed elsewhere - check for at least one legal connection
+            { //tile has been placed elsewhere - check for at least one legal connection with adjacent tiles
+                int legalConnection = 0;
                 if(newTile.getRow() > 'A')
                 { //check north
                     if(placements.containsKey(getAdjCoords('N', newTile)))
                     {
-                        placements.put(newTile.getCoords(), newTile);
-                        return true;
+                        legalConnection++;
                     }
                 }
                 if(newTile.getColumn() < 7)
                 { //check east
                     if(placements.containsKey(getAdjCoords('E', newTile)))
                     {
-                        placements.put(newTile.getCoords(), newTile);
-                        return true;
+                        legalConnection++;
                     }
                 }
                 if(newTile.getRow() < 'G')
                 { //check south
                     if(placements.containsKey(getAdjCoords('S', newTile)))
                     {
-                        placements.put(newTile.getCoords(), newTile);
-                        return true;
+                        legalConnection++;
                     }
                 }
                 if(newTile.getColumn() > 0)
                 { //check west
                     if(placements.containsKey(getAdjCoords('W', newTile)))
                     {
-                        placements.put(newTile.getCoords(), newTile);
-                        return true;
+                        legalConnection++;
                     }
+                }
+                if(legalConnection > 0)
+                {
+                    placements.put(newTile.getCoords(), newTile);
+                    return true;
                 }
             }
         }
@@ -133,7 +136,7 @@ public class Board
             chkCoords = getAdjCoords('N', newTile);
             if(placements.containsKey(chkCoords))
             { //if the adjacent tiles south edge connector does not equal the new tiles north edge connector, it is illegal
-                if(placements.get(chkCoords).getEdge('S') != newTile.getEdge('N'))
+                if(edgesClash(chkCoords, newTile, 'N'))
                 {
                     return false;
                 }
@@ -144,7 +147,7 @@ public class Board
             chkCoords = getAdjCoords('E', newTile);
             if(placements.containsKey(chkCoords))
             { //if the adjacent tiles west edge connector does not equal the new tiles east edge connector, it is illegal
-                if(placements.get(chkCoords).getEdge('W') != newTile.getEdge('E'))
+                if(edgesClash(chkCoords, newTile, 'E'))
                 {
                     return false;
                 }
@@ -155,7 +158,7 @@ public class Board
             chkCoords = getAdjCoords('S', newTile);
             if(placements.containsKey(chkCoords))
             { //if the adjacent tiles north edge connector does not equal the new tiles south edge connector, it is illegal
-                if(placements.get(chkCoords).getEdge('N') != newTile.getEdge('S'))
+                if(edgesClash(chkCoords, newTile, 'S'))
                 {
                     return false;
                 }
@@ -166,7 +169,7 @@ public class Board
             chkCoords = getAdjCoords('W', newTile);
             if(placements.containsKey(chkCoords))
             { //if the adjacent tiles east edge connector does not equal the new tiles west edge connector, it is illegal
-                if(placements.get(chkCoords).getEdge('E') != newTile.getEdge('W'))
+                if(edgesClash(chkCoords, newTile, 'W'))
                 {
                     return false;
                 }
@@ -174,6 +177,32 @@ public class Board
         }
 
         return true;
+    }
+
+    private boolean edgesClash(String chkCoords, Tile newTile, char thisEdge)
+    {
+        if(newTile.getEdge(thisEdge) != 0)
+        { //this edge is not 0
+            if(placements.get(chkCoords).getEdge(getOppositeEdge(thisEdge)) != 0)
+            { //the other edge is not 0
+                if(placements.get(chkCoords).getEdge(getOppositeEdge(thisEdge)) != newTile.getEdge(thisEdge))
+                { //and this edge != other edge
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private char getOppositeEdge(char edge)
+    {
+        switch(edge)
+        {
+            case 'N': return 'S';
+            case 'E': return 'W';
+            case 'S': return 'N';
+            default: return 'E';
+        }
     }
 
     private String getAdjCoords(char edge, Tile newTile)
@@ -207,6 +236,11 @@ public class Board
     {
         //clears the board of all tiles when a new game begins
         placements = new HashMap<>(0);
+    }
+
+    public Tile getTile(String coords)
+    {
+        return placements.get(coords);
     }
 
     @Override

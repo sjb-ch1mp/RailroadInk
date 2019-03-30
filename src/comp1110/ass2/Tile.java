@@ -1,15 +1,13 @@
 package comp1110.ass2;
 
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.transform.Rotate;
-
 /**
  * The Tile enum makes it easier to handle and access Tile data and behaviour.
  * A couple important aspects of Tile is that it will keep track of which edges
  * have which connections when changing the orientation, and will make it easier
  * to get the correct image of a Tile from assets.
  */
+
+import java.io.File;
 
 public enum Tile
 {
@@ -37,7 +35,6 @@ public enum Tile
     private char routeType; //stores the route type, 'O' = overpass, 'S' = station, 'N' = neither
     private char row; //the row and column of a given placement can be stored when the tile is placed on the board
     private int column; //this is for calculating score
-    private ImageView img; //this stores the image for the tile
     private boolean used; //this stores whether the tile has been used (dices and special tiles)
 
     Tile(String id, char routeType, char north, char east, char south, char west)
@@ -46,7 +43,6 @@ public enum Tile
         this.orientation = 0;
         this.routeType = routeType;
         used = false;
-        img = new ImageView(new Image("assets/" + id + ".png"));
 
         edges = new char[4];
         edges[0] = north;
@@ -93,21 +89,11 @@ public enum Tile
                 hold = edges[1];
                 edges[1] = edges[3];
                 edges[3] = hold;
-
-                //same for ImageView
-                img = new ImageView(new Image("assets/" + id + ".png"));
-
-                //rotate along y axis 180 degrees
-                img.setRotationAxis(Rotate.Y_AXIS);
-                img.setRotate(180);
             }
             else if(orientation == 0)
             { //returning to normal orientations
                 //reset edges array to orientation zero
                 resetEdges();
-
-                //same for ImageView
-                img = new ImageView(new Image("assets/" + id + ".png"));
             }
             else
             { //otherwise right shift edges by one
@@ -116,14 +102,8 @@ public enum Tile
                 edges[2] = edges[1];
                 edges[1] = edges[0];
                 edges[0] = hold;
-
-                //and rotate image by 90 degrees
-                img.setRotate(90);
             }
-
         }
-
-        orientation = newOrientation;
     }
 
     public void rotateTile()
@@ -167,6 +147,11 @@ public enum Tile
         return orientation;
     }
 
+    public void putOrientation(int o)
+    {
+        orientation = o;
+    }
+
     public char getEdge(char edge)
     {
         //returns the current value of the edge - used to test compatibility
@@ -197,12 +182,6 @@ public enum Tile
     public char getRouteType()
     {
         return routeType;
-    }
-
-    public ImageView getImage()
-    {
-        //returns the img field
-        return img;
     }
 
     public void addCoordinates(String coords)

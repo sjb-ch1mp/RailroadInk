@@ -1,6 +1,5 @@
 package comp1110.ass2;
 
-import javafx.scene.image.ImageView;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,12 +47,6 @@ public class SpecialTiles
         }
     }
 
-    public ImageView getImage(String sTile)
-    {
-        //returns a reference to the ImageView in the UI for the special tile at the given index
-        return specialTiles.get(sTile).getImage();
-    }
-
     public Tile useSpecialTile(String sTile)
     {
         //use a special tile
@@ -65,6 +58,11 @@ public class SpecialTiles
     public boolean isUsed(String sTile)
     {
         return specialTiles.get(sTile).isUsed();
+    }
+
+    public Tile getSpecialTile(String sTile)
+    {
+        return specialTiles.get(sTile);
     }
 
     public int getSpecialCounter()

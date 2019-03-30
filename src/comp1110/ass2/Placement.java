@@ -46,6 +46,11 @@ public class Placement
         return id;
     }
 
+    public String getFullId()
+    {
+        return "" + type + id;
+    }
+
     public char getRow()
     {
         return row;
@@ -59,6 +64,11 @@ public class Placement
     public int getColumn()
     {
         return column;
+    }
+
+    public String getCoords()
+    {
+        return "" + row + column;
     }
 
     public int getOrientation()

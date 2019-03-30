@@ -1,6 +1,5 @@
 package comp1110.ass2;
 
-import javafx.scene.image.ImageView;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -60,12 +59,6 @@ public class Dices
         }
     }
 
-    public ImageView getImage(String dice)
-    {
-        //returns the reference to an ImageView object for the dice at the given index
-        return dices.get(dice).getImage();
-    }
-
     public Tile useDice(String dice)
     {
         //return the Tile enum for a dice at the given index
@@ -82,5 +75,20 @@ public class Dices
     public int getDiceCounter()
     {
         return diceCounter;
+    }
+
+    public Tile getDice(String dice)
+    {
+        return dices.get(dice);
+    }
+
+    public String toString()
+    {
+        StringBuilder diceString = new StringBuilder();
+        for(Map.Entry<String, Tile> dice : dices.entrySet())
+        {
+            diceString.append(dice.getValue().getId());
+        }
+        return diceString.toString();
     }
 }
