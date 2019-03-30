@@ -70,13 +70,6 @@ public class Viewer extends Application {
         {
             textWarning.setText("Bad placement string! Try again.");
         }
-        /* ===================== DEBUG*/System.out.println("Board: ");
-        /* ===================== DEBUG*/
-        for(Map.Entry<String, Tile> tile : boardData.placements.entrySet())
-        {
-            System.out.println(Arrays.toString(tile.getValue().getEdges()));
-        }
-        /* ===================== DEBUG*/
 
     }
 
