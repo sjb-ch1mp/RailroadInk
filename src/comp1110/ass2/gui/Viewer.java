@@ -9,6 +9,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -17,6 +18,8 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
+
+import java.awt.event.KeyEvent;
 
 /**
  * A very simple viewer for tile placements in the Railroad Ink game.
@@ -39,8 +42,9 @@ public class Viewer extends Application {
     private GridPane boardProper;
     private final VBox root = new VBox();
     private final Group controls = new Group();
-    TextField textField;
-    Text textWarning;
+    private Placement prevPlacement = null;
+    private TextField textField;
+    private Text textWarning;
 
     /**
      * Draw a placement in the window, removing any previously drawn one
@@ -49,22 +53,54 @@ public class Viewer extends Application {
      */
     void makePlacement(String placement) {
         // FIXME Task 4: implement the simple placement viewer
+
+        /*
+        * The makePlacement() method takes valid placement strings
+        * and puts them onto boardProper after clearing
+        * any previous placement (if it exists).
+        *
+        * NOTE: The makePlacement() method DOES NOT apply the placement
+        * rules of the game as this was not a requirement of Task 4.
+        * It is simply to test whether the placement strings can be translated
+        * into an actual placement on the game board.
+        * */
+
         if(placement.length() == 5 && RailroadInk.isTilePlacementWellFormed(placement))
-        {
+        { //if placementString is valid
             Placement p = new Placement(placement);
-            if(boardData.addTile(placement))
-            {
-                ImageView img = ImageHandler.getTileImage(boardData.getTile(p.getCoords()));
-                boardProper.add(img, p.getColumn(), p.getRowAsInt());
-                textWarning.setText("");
+            ImageView img;
+            if(prevPlacement != null)
+            { //if this is not the first placement, replace the previous placement with an appropriate tile
+                if(boardData.isCenterCoord(prevPlacement.getCoords()))
+                { //replace with center tile
+                    img = ImageHandler.getMiscTile("CENTER_TILE");
+                }
+                else
+                { //replace with blank tile
+                    img = ImageHandler.getMiscTile("BLANK_TILE");
+                }
+
+                //replace previous placement with blank/center tile
+                boardProper.add(img, prevPlacement.getColumn(), prevPlacement.getRowAsInt());
             }
-            else
-            {
-                textWarning.setText("Invalid placement! Try again.");
-            }
+
+            //create tile for this placement
+            Tile tile = Tile.valueOf(p.getFullId());
+            tile.updateOrientation(p.getOrientation());
+            tile.addCoordinates(p.getCoords());
+
+            //get the appropriate image
+            img = ImageHandler.getTileImage(tile);
+
+            //add the tile to the board
+            boardProper.add(img, p.getColumn(), p.getRowAsInt());
+            textWarning.setText("");
+
+            //store p as prevPlacement
+            prevPlacement = p;
         }
         else
-        {
+        { //otherwise warn user that placement string is wrong
             textWarning.setText("Bad placement string! Try again.");
         }
 
@@ -78,6 +114,15 @@ public class Viewer extends Application {
         Label label1 = new Label("Placement:");
         textField = new TextField();
         textField.setPrefWidth(300);
+        textField.setOnKeyPressed(ae ->
+        { //added key press event to textfield because having to press the button is annoying
+            KeyCode key = ae.getCode();
+            if(key == KeyCode.ENTER)
+            {
+                makePlacement(textField.getText());
+                textField.clear();
+            }
+        });
         Button button = new Button("Refresh");
         button.setOnAction(e -> {
             makePlacement(textField.getText());
@@ -91,6 +136,14 @@ public class Viewer extends Application {
         controls.getChildren().add(hb);
     }
 
+    /**
+     * The makeBoard() method sets up the edges of the board, as well as the
+     * board proper, as GridPanes.
+     * The eastEdge, westEdge and boardProper are housed within a HBox (middleContainer),
+     * which is in turn sandwiched between the northEdge and southEdge and housed in the
+     * board VBox.
+     * Green squares are used for the edges, blue for the board and red for the center tiles.
+     */
     private void makeBoard()
     {
         GridPane northEdge = new GridPane();
@@ -185,6 +238,9 @@ public class Viewer extends Application {
         board.setAlignment(Pos.CENTER);
     }
 
+    /**
+     * The makeBoardProper() method makes the boardProper GridPane.
+     */
     private void makeBoardProper()
     {
         ImageView tile;

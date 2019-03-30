@@ -34,6 +34,11 @@ public class SpecialTiles
         specialCounter = 0;
     }
 
+    /**
+     * The rotateTiles() method rotates all Tiles in the specialTiles HashMap
+     * by one, clock-wise. It does so by calling rotateTile() on each of
+     * the tiles in the HashMap.
+     */
     public void rotateTiles()
     {
         /*
@@ -47,6 +52,13 @@ public class SpecialTiles
         }
     }
 
+    /**
+     * The useSpecialTile() method iterates the specialCounter field, calls the useTile() method
+     * on the given special tile and then returns the Tile enum for the special tile being used.
+     *
+     * @param sTile (String) The identifier for the special tile being used (S1-S6).
+     * @return (Tile) The tile representing the special tile being used.
+     */
     public Tile useSpecialTile(String sTile)
     {
         //use a special tile
@@ -55,6 +67,12 @@ public class SpecialTiles
         return specialTiles.get(sTile);
     }
 
+    /**
+     * The isUsed() method checks whether a special tile has already been used.
+     *
+     * @param sTile (String) The identifier for the special tile (S1-S6).
+     * @return boolean
+     */
     public boolean isUsed(String sTile)
     {
         return specialTiles.get(sTile).isUsed();

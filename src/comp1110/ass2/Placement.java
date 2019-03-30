@@ -11,6 +11,11 @@ public class Placement
     private int column; //The column of the tile placement (0-6)
     private int orientation; //The orientation of the tile (0-7)
 
+    /**
+     * An overloaded constructor that builds a Placement from a placement string.
+     *
+     * @param placementString
+     */
     public Placement(String placementString)
     {
         //constructs a placement from a placementString
@@ -21,6 +26,12 @@ public class Placement
         orientation = Integer.parseInt(placementString.substring(4));
     }
 
+    /**
+     * An overloaded constructor that builds a Placement from a Tile. The coordinates
+     * are NOT created in this constructor.
+     *
+     * @param tile
+     */
     public Placement(Tile tile)
     {
         //constructs a placement from a Tile (no row and column data)
@@ -29,6 +40,12 @@ public class Placement
         orientation = tile.getOrientation();
     }
 
+    /**
+     * The updateCoordinates() method changes the coordinates of the Placement.
+     * Primarily for Placements constructed with a Tile.
+     *
+     * @param coords
+     */
     public void updateCoordinates(String coords)
     {
         //updates the row and column fields of the placement (passed from the name of the ImageView in the board)

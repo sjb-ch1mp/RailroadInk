@@ -55,6 +55,13 @@ public enum Tile
         }
     }
 
+    /**
+     * The updateOrientation() method changes the orientation of the Tile.
+     * To do so, it shifts the values in the edges array depending upon the difference
+     * between the current orientation and the desired orientation.
+     *
+     * @param newOrientation (int) The desired orientation for the Tile
+     */
     public void updateOrientation(int newOrientation)
     {
         // Updates the orientation and the position of the values in the edges array
@@ -104,6 +111,9 @@ public enum Tile
         }
     }
 
+    /**
+     * The rotateTile() method updates the orientation of the tile by 1.
+     */
     public void rotateTile()
     {
         //updates the orientation and the position of the values in the edges array by one
@@ -145,11 +155,12 @@ public enum Tile
         return orientation;
     }
 
-    public void putOrientation(int o)
-    {
-        orientation = o;
-    }
-
+    /**
+     * The getEdge() method returns the value of the desired edge.
+     *
+     * @param edge (char) The desired edge.
+     * @return (char) The value of the desired edge.
+     */
     public char getEdge(char edge)
     {
         //returns the current value of the edge - used to test compatibility
@@ -164,6 +175,10 @@ public enum Tile
         return 'x';
     }
 
+    /**
+     * The resetEdges() method reverts all values in the
+     * edges array to those of orientation zero.
+     */
     private void resetEdges()
     {
         for(int i=0; i<edges.length; i++)

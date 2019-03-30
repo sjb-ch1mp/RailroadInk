@@ -11,13 +11,13 @@ import java.util.Map;
 
 public class Board
 {
-    //This hashmap stores the coordinates of the tile, and the tile enum. This will make it easier to calculate the score
+    private //This hashmap stores the coordinates of the tile, and the tile enum. This will make it easier to calculate the score
     HashMap<String, Tile> placements;
     //This ArrayList holds the centre coordinates. This will make it easier to calculate the score
-    ArrayList<String> centerCoords;
+    private ArrayList<String> centerCoords;
     //This hashmap stores the coordinates of the exit tiles as well as which side needs to be which route,
     //e.g. "<A2, NR>" means at coordinate A2, the North side of the tile needs to be a Road.
-    HashMap<String, String> exitCoords;
+    private HashMap<String, String> exitCoords;
 
     //The fields are public so that they can be freely accessed by the ScoreCalculator
 
@@ -53,6 +53,18 @@ public class Board
         exitCoords.put("B0", "WR");
     }
 
+    /**
+     * The addTile() method takes a placement string and applies the placement
+     * rules of the Railroad Ink game. It first checks whether there are any
+     * illegal connections, then it checks whether there is a legal exit connection,
+     * and finally it checks for at least one valid connection to an adjacent tile.
+     * If there is an illegal connection OR there is no legal connections to an
+     * exit or adjacent tile, the tile is not placed and the method returns false.
+     * Otherwise, the tile is placed and the method returns true.
+     *
+     * @param placementString
+     * @return boolean
+     */
     public boolean addTile(String placementString)
     {
         //Adds a tile to the board if the placement is legal. Returns false if the placement is invalid
@@ -107,17 +119,31 @@ public class Board
                     }
                 }
                 if(legalConnection > 0)
-                {
+                { //there is at least one legal connection to an adjacent tile
                     placements.put(newTile.getCoords(), newTile);
                     return true;
                 }
             }
         }
+
+        //if there is an illegal connection OR there are no legal connections
+        //to an exit or an adjacent tile, return false
+
         return false;
     }
 
+    /**
+     * The noIllegalConnections() method takes a Tile from the addTile() method
+     * and checks whether there is an illegal connection with an exit or an
+     * adjacent tile. An connection is illegal if the both of the meeting edges
+     * are not blank (i.e. Tile.getEdge() == '0') and they are not the same.
+     *
+     * @param newTile
+     * @return boolean
+     */
     private boolean noIllegalConnections(Tile newTile)
     {
+        //check for illegal connections to an exit
         for(Map.Entry<String, String> exitTile : exitCoords.entrySet())
         {
             if(exitTile.getKey().equals(newTile.getCoords()))
@@ -129,6 +155,7 @@ public class Board
             }
         }
 
+        //check for illegal connections to an adjacent tile
         String chkCoords;
         if(newTile.getRow() > 'A')
         { //check north
@@ -178,6 +205,17 @@ public class Board
         return true;
     }
 
+
+    /**
+     * The edgesClash() method takes the coordinates of an adjacent tile and checks
+     * whether there is a 'clash' between the two. There is a clash if both of the edges
+     * that meet are not empty and they are not the same.
+     *
+     * @param chkCoords (String) Coordinate of adjacent tile.
+     * @param newTile (Tile) The tile currently being placed.
+     * @param thisEdge (char) The edge of the tile being checked.
+     * @return boolean
+     */
     private boolean edgesClash(String chkCoords, Tile newTile, char thisEdge)
     {
         if(newTile.getEdge(thisEdge) != 0)
@@ -193,6 +231,14 @@ public class Board
         return false;
     }
 
+    /**
+     * The getOppositeEdge() method takes an edge from the Tile being placed
+     * and returns the edge of an adjacent tile that needs to be checked for a
+     * clash.
+     *
+     * @param edge (char) The edge of the Tile being placed.
+     * @return The edge opposite to the edge parameter (char)
+     */
     private char getOppositeEdge(char edge)
     {
         switch(edge)
@@ -204,6 +250,14 @@ public class Board
         }
     }
 
+    /**
+     * The getAdjCoords() method returns the coordinates of an adjacent tile at
+     * the given edge of the tile being placed.
+     *
+     * @param edge (char) The side of the tile for which the coordinates are required.
+     * @param newTile (Tile) The tile being placed.
+     * @return The coordinates of the adjacent tile at the given edge (String.
+     */
     private String getAdjCoords(char edge, Tile newTile)
     {
         StringBuilder chkCoords = new StringBuilder();
@@ -231,17 +285,32 @@ public class Board
         return chkCoords.toString();
     }
 
+    /**
+     * The clearBoard() method clears all placements on the board
+     * by re-initialising the placements HashMap.
+     */
     public void clearBoard()
     {
         //clears the board of all tiles when a new game begins
         placements = new HashMap<>(0);
     }
 
+    /**
+     * The getTile() method returns a Tile at the given coordinates.
+     *
+     * @param coords (String) The coordinates of the required tile.
+     * @return (Tile) The tile at the given coordinates.
+     */
     public Tile getTile(String coords)
     {
         return placements.get(coords);
     }
 
+    /**
+     * The toString() method returns a String representation of all placements on the board.
+     *
+     * @return (String) Returns a string representation of all placements on the board.
+     */
     @Override
     public String toString()
     {
@@ -259,5 +328,24 @@ public class Board
             boardString.append(placement.getValue().getOrientation());
         }
         return boardString.toString();
+    }
+
+    /**
+     * The isCenterCoord() method takes coordinates and returns a boolean
+     * based on whether or not they are in the 'center' region of the board.
+     *
+     * @param coord (String) The coordinates of a given tile
+     * @return boolean
+     */
+    public boolean isCenterCoord(String coord)
+    {
+        for(String center : centerCoords)
+        {
+            if(center.equals(coord))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }
