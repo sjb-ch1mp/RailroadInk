@@ -1,6 +1,8 @@
 package comp1110.ass2;
 
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.transform.Rotate;
 
 /**
  * The Tile enum makes it easier to handle and access Tile data and behaviour.
@@ -29,23 +31,34 @@ public enum Tile
 
     private final int TOTAL_ORIENTATIONS = 8;
     private char[] edges; //edges stores the connectors on each edge of the tile (north, east, south, west)
+    private char[] edgesOrientationZero; //edgesOrientationZero stores the initial edges array for the resetEdges() method
     private String id;
     private int orientation;
     private char routeType; //stores the route type, 'O' = overpass, 'S' = station, 'N' = neither
     private char row; //the row and column of a given placement can be stored when the tile is placed on the board
     private int column; //this is for calculating score
+    private ImageView img; //this stores the image for the tile
+    private boolean used; //this stores whether the tile has been used (dices and special tiles)
 
     Tile(String id, char routeType, char north, char east, char south, char west)
     {
         this.id = id;
         this.orientation = 0;
         this.routeType = routeType;
+        used = false;
+        img = new ImageView(new Image("assets/" + id + ".png"));
 
         edges = new char[4];
         edges[0] = north;
         edges[1] = east;
         edges[2] = south;
         edges[3] = west;
+
+        edgesOrientationZero = new char[4];
+        for(int i=0; i<edges.length; i++)
+        {
+            edgesOrientationZero[i] = edges[i];
+        }
     }
 
     public void updateOrientation(int newOrientation)
@@ -62,29 +75,6 @@ public enum Tile
 
         for(int i=0; i<nrShifts; i++)
         {
-            char hold;
-            if(orientation == 3)
-            { //moving to mirror orientations
-                this.edges = Tile.valueOf(this.id).getEdges(); //reset the edges to orientation 0
-
-                //switch east and west edge
-                hold = edges[1];
-                edges[1] = edges[3];
-                edges[3] = hold;
-            }
-            else if(orientation == 7)
-            { //returning to normal orientations
-                this.edges = Tile.valueOf(this.id).getEdges(); //reset the edges to orientation 0
-            }
-            else
-            { //otherwise right shift edges by one
-                hold = edges[3];
-                edges[3] = edges[2];
-                edges[2] = edges[1];
-                edges[1] = edges[0];
-                edges[0] = hold;
-            }
-
             if(orientation == 7)
             {
                 orientation = 0;
@@ -93,6 +83,44 @@ public enum Tile
             {
                 orientation++;
             }
+
+            char hold;
+            if(orientation == 4)
+            { //moving to mirror orientations
+                resetEdges();
+
+                //switch east and west edge
+                hold = edges[1];
+                edges[1] = edges[3];
+                edges[3] = hold;
+
+                //same for ImageView
+                img = new ImageView(new Image("assets/" + id + ".png"));
+
+                //rotate along y axis 180 degrees
+                img.setRotationAxis(Rotate.Y_AXIS);
+                img.setRotate(180);
+            }
+            else if(orientation == 0)
+            { //returning to normal orientations
+                //reset edges array to orientation zero
+                resetEdges();
+
+                //same for ImageView
+                img = new ImageView(new Image("assets/" + id + ".png"));
+            }
+            else
+            { //otherwise right shift edges by one
+                hold = edges[3];
+                edges[3] = edges[2];
+                edges[2] = edges[1];
+                edges[1] = edges[0];
+                edges[0] = hold;
+
+                //and rotate image by 90 degrees
+                img.setRotate(90);
+            }
+
         }
 
         orientation = newOrientation;
@@ -119,6 +147,21 @@ public enum Tile
         return id;
     }
 
+    public char getRow()
+    {
+        return row;
+    }
+
+    public int getColumn()
+    {
+        return column;
+    }
+
+    public String getCoords()
+    {
+        return "" + row + column;
+    }
+
     public int getOrientation()
     {
         return orientation;
@@ -138,7 +181,15 @@ public enum Tile
         return 'x';
     }
 
-    private char[] getEdges()
+    private void resetEdges()
+    {
+        for(int i=0; i<edges.length; i++)
+        {
+            edges[i] = edgesOrientationZero[i];
+        }
+    }
+
+    public char[] getEdges()
     {
         return edges;
     }
@@ -148,10 +199,10 @@ public enum Tile
         return routeType;
     }
 
-    public Image getImage()
+    public ImageView getImage()
     {
-        //returns a new Image using the imageUri field
-        return new Image("assets/" + id + ".png"); //e.g. assets/A00.png
+        //returns the img field
+        return img;
     }
 
     public void addCoordinates(String coords)
@@ -159,7 +210,16 @@ public enum Tile
         //stores the coordinates for this tile when it is placed in the board - will help when compiling routes
         //in the ScoreCalculator
         row = coords.charAt(0);
-        column = coords.charAt(1);
+        column = Integer.parseInt(coords.substring(1));
     }
 
+    public void useTile()
+    {
+        used = true;
+    }
+
+    public boolean isUsed()
+    {
+        return used;
+    }
 }

@@ -54,6 +54,7 @@ public class ScoreCalculator
         * In this way, hopefully all Tiles associated with a given route are stored in a single ArrayList<Tile>, and all
         * routes are stored in an overarching routes ArrayList
         * */
+        return new ArrayList<>(0);
     }
 
     private void calculateLongestRoute(char type)

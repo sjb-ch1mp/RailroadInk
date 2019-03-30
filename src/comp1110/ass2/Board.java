@@ -2,6 +2,7 @@ package comp1110.ass2;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The Board class keeps of all placements on the board in a HashMap for easy access (by coordinate).
@@ -23,23 +24,207 @@ public class Board
     public Board()
     {
         placements = new HashMap<>(0);
-        //Build centerCoords array
+
+        //center coordinates
+        centerCoords = new ArrayList<>(0);
+        centerCoords.add("C2");
+        centerCoords.add("C3");
+        centerCoords.add("C4");
+        centerCoords.add("D2");
+        centerCoords.add("D3");
+        centerCoords.add("D4");
+        centerCoords.add("E2");
+        centerCoords.add("E3");
+        centerCoords.add("E4");
+
         //Build exitCoords HashMap
+        exitCoords = new HashMap<>(0);
+        exitCoords.put("A1", "NH");
+        exitCoords.put("A3", "NR");
+        exitCoords.put("A5", "NH");
+        exitCoords.put("B6", "ER");
+        exitCoords.put("D6", "EH");
+        exitCoords.put("F6", "ER");
+        exitCoords.put("G5", "SH");
+        exitCoords.put("G3", "SR");
+        exitCoords.put("G1", "SH");
+        exitCoords.put("F0", "WR");
+        exitCoords.put("D0", "WH");
+        exitCoords.put("B0", "WR");
     }
 
     public boolean addTile(String placementString)
     {
         //Adds a tile to the board if the placement is legal. Returns false if the placement is invalid
+        Tile newTile = Tile.valueOf(placementString.substring(0, 2));
+        newTile.updateOrientation(Integer.parseInt(placementString.substring(4)));
+        newTile.addCoordinates(placementString.substring(2, 4));
+
+        //check a tile isn't already on that space
+        if(placements.containsKey(newTile.getCoords()))
+        {
+            return false;
+        }
+
+        //check for any illegal connections
+        if(noIllegalConnections(newTile))
+        {
+            //check for legal edge connection
+            if(exitCoords.containsKey(newTile.getCoords()))
+            { //tile has been placed on an exit tile
+                placements.put(newTile.getCoords(), newTile);
+                return true;
+            }
+            else
+            { //tile has been placed elsewhere - check for at least one legal connection
+                if(newTile.getRow() > 'A')
+                { //check north
+                    if(placements.containsKey(getAdjCoords('N', newTile)))
+                    {
+                        placements.put(newTile.getCoords(), newTile);
+                        return true;
+                    }
+                }
+                if(newTile.getColumn() < 7)
+                { //check east
+                    if(placements.containsKey(getAdjCoords('E', newTile)))
+                    {
+                        placements.put(newTile.getCoords(), newTile);
+                        return true;
+                    }
+                }
+                if(newTile.getRow() < 'G')
+                { //check south
+                    if(placements.containsKey(getAdjCoords('S', newTile)))
+                    {
+                        placements.put(newTile.getCoords(), newTile);
+                        return true;
+                    }
+                }
+                if(newTile.getColumn() > 0)
+                { //check west
+                    if(placements.containsKey(getAdjCoords('W', newTile)))
+                    {
+                        placements.put(newTile.getCoords(), newTile);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean noIllegalConnections(Tile newTile)
+    {
+        for(Map.Entry<String, String> exitTile : exitCoords.entrySet())
+        {
+            if(exitTile.getKey().equals(newTile.getCoords()))
+            {
+                if(newTile.getEdge(exitTile.getValue().charAt(0)) != exitTile.getValue().charAt(1))
+                {
+                    return false;
+                }
+            }
+        }
+
+        String chkCoords;
+        if(newTile.getRow() > 'A')
+        { //check north
+            chkCoords = getAdjCoords('N', newTile);
+            if(placements.containsKey(chkCoords))
+            { //if the adjacent tiles south edge connector does not equal the new tiles north edge connector, it is illegal
+                if(placements.get(chkCoords).getEdge('S') != newTile.getEdge('N'))
+                {
+                    return false;
+                }
+            }
+        }
+        if(newTile.getColumn() < 7)
+        { //check east
+            chkCoords = getAdjCoords('E', newTile);
+            if(placements.containsKey(chkCoords))
+            { //if the adjacent tiles west edge connector does not equal the new tiles east edge connector, it is illegal
+                if(placements.get(chkCoords).getEdge('W') != newTile.getEdge('E'))
+                {
+                    return false;
+                }
+            }
+        }
+        if(newTile.getRow() < 'G')
+        { //check south
+            chkCoords = getAdjCoords('S', newTile);
+            if(placements.containsKey(chkCoords))
+            { //if the adjacent tiles north edge connector does not equal the new tiles south edge connector, it is illegal
+                if(placements.get(chkCoords).getEdge('N') != newTile.getEdge('S'))
+                {
+                    return false;
+                }
+            }
+        }
+        if(newTile.getColumn() > 0)
+        { //check west
+            chkCoords = getAdjCoords('W', newTile);
+            if(placements.containsKey(chkCoords))
+            { //if the adjacent tiles east edge connector does not equal the new tiles west edge connector, it is illegal
+                if(placements.get(chkCoords).getEdge('E') != newTile.getEdge('W'))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private String getAdjCoords(char edge, Tile newTile)
+    {
+        StringBuilder chkCoords = new StringBuilder();
+        if(edge == 'N')
+        {
+            chkCoords.append((char)(newTile.getRow() - 1));
+            chkCoords.append(newTile.getColumn());
+        }
+        else if(edge == 'E')
+        {
+            chkCoords.append(newTile.getRow());
+            chkCoords.append(newTile.getColumn() + 1);
+        }
+        else if(edge == 'S')
+        {
+            chkCoords.append((char)(newTile.getRow() + 1));
+            chkCoords.append(newTile.getColumn());
+        }
+        else if(edge == 'W')
+        {
+            chkCoords.append(newTile.getRow());
+            chkCoords.append(newTile.getColumn() - 1);
+        }
+
+        return chkCoords.toString();
     }
 
     public void clearBoard()
     {
         //clears the board of all tiles when a new game begins
+        placements = new HashMap<>(0);
     }
 
     @Override
     public String toString()
     {
         //Returns a String representation of all tile placements on the board
+        if(placements.size() == 0)
+        {
+            return "";
+        }
+
+        StringBuilder boardString = new StringBuilder();
+        for(Map.Entry<String, Tile> placement : placements.entrySet())
+        {
+            boardString.append(placement.getValue().getId());
+            boardString.append(placement.getKey());
+            boardString.append(placement.getValue().getOrientation());
+        }
+        return boardString.toString();
     }
 }

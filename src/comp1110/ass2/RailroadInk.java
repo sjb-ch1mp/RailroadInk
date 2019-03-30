@@ -14,6 +14,7 @@ public class RailroadInk
      *       by just making those used tiles not appearing in the sub-UIs once they're place... A thought for later :)
      * */
 
+    /* commented out so that it doesn't cause errors
     Board board; //holds all board data
     Dices dices; //holds all data for the dices
     SpecialTiles specialTiles; //holds all data for the special tiles
@@ -24,6 +25,7 @@ public class RailroadInk
     {
         //constructor for the RailroadInk object
     }
+    */
 
     /**
      * Determine whether a tile placement string is well-formed:

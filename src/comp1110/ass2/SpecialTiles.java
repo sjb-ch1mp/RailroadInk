@@ -1,7 +1,8 @@
 package comp1110.ass2;
 
 import javafx.scene.image.ImageView;
-import javafx.scene.transform.Rotate;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The SpecialTiles class keeps track of the tile information in the special tiles sub-UI.
@@ -11,10 +12,8 @@ import javafx.scene.transform.Rotate;
 
 public class SpecialTiles
 {
-    private Tile[] specialTiles; //tracks the tile data for the S tiles
-    private ImageView[] imageRefs; //holds references to the ImageViews of each special tile to make updating easier
+    private HashMap<String, Tile> specialTiles; //tracks the tile data for the S tiles
     private int specialCounter; //keeps track of how many special tiles have been used this game
-    private Rotate rotate; //A rotate object to change the orientation of the ImageViews
 
     public SpecialTiles()
     {
@@ -25,11 +24,15 @@ public class SpecialTiles
         * for special one is at specialTiles[0] and the ImageView reference for
         * special one is at imageRefs[0].
         * */
-    }
+        specialTiles = new HashMap<>(0);
+        specialTiles.put("S1", Tile.valueOf("S0"));
+        specialTiles.put("S2", Tile.valueOf("S1"));
+        specialTiles.put("S3", Tile.valueOf("S2"));
+        specialTiles.put("S4", Tile.valueOf("S3"));
+        specialTiles.put("S5", Tile.valueOf("S4"));
+        specialTiles.put("S6", Tile.valueOf("S5"));
 
-    public void refreshSpecials()
-    {
-        //returns all of the images to their original images. Called when new game starts.
+        specialCounter = 0;
     }
 
     public void rotateTiles()
@@ -39,15 +42,33 @@ public class SpecialTiles
          * and calling rotateTile() to update the edge positions. It will then update
          * the ImageView on the board using the Rotate object on the elements in the imageRef[] array.
          */
+        for(Map.Entry<String, Tile> sTile : specialTiles.entrySet())
+        {
+            sTile.getValue().rotateTile();
+        }
     }
 
-    public ImageView getImageRef(int idx)
+    public ImageView getImage(String sTile)
     {
         //returns a reference to the ImageView in the UI for the special tile at the given index
+        return specialTiles.get(sTile).getImage();
     }
 
-    public Tile getSpecialTile(int idx)
+    public Tile useSpecialTile(String sTile)
     {
-        //return a Tile enum for the special tile at the given index
+        //use a special tile
+        specialCounter++;
+        specialTiles.get(sTile).useTile();
+        return specialTiles.get(sTile);
+    }
+
+    public boolean isUsed(String sTile)
+    {
+        return specialTiles.get(sTile).isUsed();
+    }
+
+    public int getSpecialCounter()
+    {
+        return specialCounter;
     }
 }
