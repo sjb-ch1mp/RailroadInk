@@ -18,9 +18,6 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 
-import java.util.Arrays;
-import java.util.Map;
-
 /**
  * A very simple viewer for tile placements in the Railroad Ink game.
  * <p>

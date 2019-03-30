@@ -7,8 +7,6 @@ package comp1110.ass2;
  * to get the correct image of a Tile from assets.
  */
 
-import java.io.File;
-
 public enum Tile
 {
     A0("A0", 'N', 'R', '0', '0', 'R'),
