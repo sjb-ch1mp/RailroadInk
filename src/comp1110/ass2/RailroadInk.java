@@ -51,17 +51,18 @@ public class RailroadInk
      * @return true if the tile placement is well formed
      */
     public static boolean isTilePlacementWellFormed(String tilePlacementString) {
-        if(tilePlacementString.length()%5!=0) return false;
+        // FIXME Task 2: determine whether a tile placement is well-formed
+        if (tilePlacementString.length() != 5) {
+            return false;
+        }
         char first = tilePlacementString.charAt(0);
         char second = tilePlacementString.charAt(1);
         char third = tilePlacementString.charAt(2);
         char fourth = tilePlacementString.charAt(3);
         char fifth = tilePlacementString.charAt(4);
 
-        if (first =='A' || first == 'B' || first == 'S' ) {
-            if(first=='B')
-                if(Integer.parseInt(second+"")>2) return false;
-            if (second >= '0' && second <= '5' || second >= '0' && second <= '2') {
+        if (first == 'A' || first == 'B' || first == 'S') {
+            if (((first == 'A' || first == 'S') && (second >= '0' && second <= '5')) || ((first == 'B') && (second >= '0' && second <= '2'))) {
                 if (third >= 'A' && third <= 'G') {
                     if (fourth >= '0' && fourth <= '6') {
                         if (fifth >= '0' && fifth <= '7') {
@@ -71,8 +72,6 @@ public class RailroadInk
                 }
             }
         }
-
-        // FIXME Task 2: determine whether a tile placement is well-formed
         return false;
     }
 
@@ -87,7 +86,19 @@ public class RailroadInk
      */
     public static boolean isBoardStringWellFormed(String boardString) {
         // FIXME Task 3: determine whether a board string is well-formed
-        return false;
+        if (boardString == null || boardString.equals("") || boardString.length()%5!=0) {
+            return false;
+        } else if (boardString.length()%5==0) {
+
+            for (int i = 0; i < 31; i = i + 5) {
+                String tilePlacementString = boardString.substring(i, i + 4);
+                if (!isTilePlacementWellFormed(tilePlacementString)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
 
