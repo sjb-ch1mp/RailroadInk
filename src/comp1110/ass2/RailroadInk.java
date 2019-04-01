@@ -89,7 +89,6 @@ public class RailroadInk
         if (boardString == null || boardString.equals("") || boardString.length()%5!=0) {
             return false;
         } else if (boardString.length()%5==0) {
-
             for (int i = 0; i < 31; i = i + 5) {
                 String tilePlacementString = boardString.substring(i, i + 4);
                 if (!isTilePlacementWellFormed(tilePlacementString)) {
