@@ -1,7 +1,19 @@
-package comp1110.ass2;
+import com.sun.org.apache.xpath.internal.operations.Bool;
+
+import java.util.ArrayList;
+import java.util.Random;
 
 public class RailroadInk
 {
+
+    final String[][] board = {
+            {"A0","A1","A2","A3","A4","A5","A6"},
+            {"B0","B1","B2","B3","B4","B5","B6"},
+            {"C0","C1","C2","C3","C4","C5","C6"},
+            {"D0","D1","D2","D3","D4","D5","D6"},
+            {"E0","E1","E2","E3","E4","E5","E6"},
+            {"F0","F1","F2","F3","F4","F5","F6"},
+            {"G0","G1","G2","G3","G4","G5","G6"}};
 
     /*
      * Assets required for UI:
@@ -89,7 +101,35 @@ public class RailroadInk
      */
     public static boolean areConnectedNeighbours(String tilePlacementStringA, String tilePlacementStringB) {
         // FIXME Task 5: determine whether neighbouring placements are connected
-        return false;
+        int xa = Integer.parseInt(tilePlacementStringA.charAt(3)+"");
+        int ya = (int)(tilePlacementStringA.charAt(2)-65);
+        int xs = Integer.parseInt(tilePlacementStringB.charAt(3)+"");
+        int ys = (int)(tilePlacementStringB.charAt(2)-65);
+        if(Math.abs(xa-xs)==1 && Math.abs(ya-ys)==1) return false;
+        else if((Math.abs(xa-xs)==1||Math.abs(ya-ys)==1)) {
+            String pica = testConnect(tilePlacementStringA);
+            String picb = testConnect(tilePlacementStringB);
+            if(tilePlacementStringA.charAt(3)==tilePlacementStringB.charAt(3)&&tilePlacementStringA.charAt(2)>tilePlacementStringB.charAt(2)){
+                if(pica.charAt(1)=='-'|| picb.charAt(3)=='-')return false;
+                return pica.charAt(1)==picb.charAt(3);//aä¸‹
+            }
+            else if(tilePlacementStringA.charAt(3)==tilePlacementStringB.charAt(3)&&tilePlacementStringA.charAt(2)<tilePlacementStringB.charAt(2))
+            {
+                if(pica.charAt(3)=='-'|| picb.charAt(1)=='-')return false;
+                return pica.charAt(3)==picb.charAt(1);//aä¸Š
+            }
+            else if(tilePlacementStringA.charAt(2)==tilePlacementStringB.charAt(2)&&tilePlacementStringA.charAt(3)>tilePlacementStringB.charAt(3))
+            {
+                if(pica.charAt(0)=='-'|| picb.charAt(2)=='-')return false;
+                return pica.charAt(0)==picb.charAt(2);//aå³
+            }
+            else if(tilePlacementStringA.charAt(2)==tilePlacementStringB.charAt(2)&&tilePlacementStringA.charAt(3)<tilePlacementStringB.charAt(3))
+            {
+                if(pica.charAt(2)=='-'|| picb.charAt(0)=='-')return false;
+                else return pica.charAt(2)==picb.charAt(0);//aå·¦
+            }else return false;
+        }
+        else return false;
     }
 
     /**
@@ -109,8 +149,142 @@ public class RailroadInk
      * @return true if placement sequence is valid
      */
     public static boolean isValidPlacementSequence(String boardString) {
+        String[][] railArrT = {{"S0","26"},{"S1","123567"},{"S3","01234567"},{"S4","2356"},{"S5","1357"},
+                {"A0","0147"},{"A1","0246"},{"A2","023456"},{"B0","26"},{"B1","35"},{"B2","1357"}};
+        String[][] railArrD = {{"S0","04"},{"S1","013457"},{"S3","01234567"},{"S4","0147"},{"S5","1357"},
+                {"A0","256"},{"A1","0246"},{"A2","012467"},{"B0","04"},{"B1","17"},{"B2","1357"}};
+        String[][] railArrL = {{"S0","15"},{"S1","012456"},{"S3","01234567"},{"S4","1245"},{"S5","0246"},
+                {"A0","0367"},{"A1","1357"},{"A2","123457"},{"B0","15"},{"B1","24"},{"B2","0246"}};
+        String[][] railArrR = {{"S0","37"},{"S1","023467"},{"S3","01234567"},{"S4","0367"},{"S5","0246"},
+                {"A0","1245"},{"A1","1357"},{"A2","013567"},{"B0","37"},{"B1","06"},{"B2","0246"}};
+        String[][] highArrT = {{"S0","013457"},{"S1","04"},{"S2","01234567"},{"S4","0147"},{"S5","0246"},
+                {"A3","023456"},{"A4","0246"},{"A5","0147"},{"B0","04"},{"B1","04"},{"B2","0246"}};
+        String[][] highArrD = {{"S0","123567"},{"S1","26"},{"S2","01234567"},{"S4","2356"},{"S5","0246"},
+                {"A3","012467"},{"A4","0246"},{"A5","2356"},{"B0","26"},{"B1","26"},{"B2","0246"}};
+        String[][] highArrL = {{"S0","023467"},{"S1","37"},{"S2","01234567"},{"S4","0367"},{"S5","1357"},
+                {"A3","123457"},{"A4","1357"},{"A5","0367"},{"B0","37"},{"B1","37"},{"B2","1357"}};
+        String[][] highArrR = {{"S0","012456"},{"S1","15"},{"S2","01234567"},{"S4","1245"},{"S5","1357"},
+                {"A3","013567"},{"A4","1357"},{"A5","1245"},{"B0","15"},{"B1","15"},{"B2","1357"}};
+        ArrayList<Boolean> boolarr = new ArrayList<>();
+        String cms = "ABCDEFG";
+        String start = "A1A3A5B0B6D0D6F0F6G1G3G5";
+        if(boardString.length()==5 && start.contains(boardString.substring(2,4))) return true;
+        if(boardString.length()%5!=0)return false;
+        else if(boardString.length()>5*49) return false;
+        else{
+            String[] strarr = new String[boardString.length()/5];
+            int index =0;
+            for(int i =0; i<boardString.length();i+=5){
+                strarr[index] = boardString.substring(i,i+5);
+                index++;
+            }
+            ArrayList<Boolean> isolate = new ArrayList<>();
+            for(String s : strarr){
+                if((s.charAt(0)!='A' || s.charAt(0)!='B' || s.charAt(0)!='S') &&
+                        (Integer.parseInt(s.charAt(1)+"")<0 || Integer.parseInt(s.charAt(1)+"")>5) &&
+                        !cms.contains(s.charAt(2)+"") &&
+                        (Integer.parseInt(s.charAt(3)+"")<0 || Integer.parseInt(s.charAt(3)+"")>6) &&
+                        (Integer.parseInt(s.charAt(4)+"")<0 || Integer.parseInt(s.charAt(4)+"")>7)) boolarr.add(false);
+                    //å†…å®¹åˆæ³•æ•°åˆ—
+                else boolarr.add(true);
+                if(s.substring(2,4).equals("A1")||s.substring(2,4).equals("A5")){
+                    for(String[] sarr:railArrT)
+                        if(s.substring(0,2).equals(sarr[0]) && sarr[1].contains(s.charAt(4)+"")) boolarr.add(false);
+                }else if(s.substring(2,4).equals("G1") || s.substring(2,4).equals("G5")){
+                    for(String[] sarr:railArrD)
+                        if(s.substring(0,2).equals(sarr[0]) && sarr[1].contains(s.charAt(4)+"")) boolarr.add(false);
+                }else if(s.substring(2,4).equals("D0")){
+                    for(String[] sarr:railArrL)
+                        if(s.substring(0,2).equals(sarr[0]) && sarr[1].contains(s.charAt(4)+"")) boolarr.add(false);
+                }else if(s.substring(2,4).equals("D6")){
+                    for(String[] sarr:railArrR)
+                        if(s.substring(0,2).equals(sarr[0]) && sarr[1].contains(s.charAt(4)+"")) boolarr.add(false);
+                }else if(s.substring(2,4).equals("B0") || s.substring(2,4).equals("F0")){
+                    for(String[] sarr:highArrL)
+                        if(s.substring(0,2).equals(sarr[0]) && sarr[1].contains(s.charAt(4)+"")) boolarr.add(false);
+                }else if(s.substring(2,4).equals("B6") || s.substring(2,4).equals("F6")){
+                    for(String[] sarr:highArrR)
+                        if(s.substring(0,2).equals(sarr[0]) && sarr[1].contains(s.charAt(4)+"")) boolarr.add(false);
+                }else if(s.substring(2,4).equals("A3")){
+                    for(String[] sarr:highArrT)
+                        if(s.substring(0,2).equals(sarr[0]) && sarr[1].contains(s.charAt(4)+"")) boolarr.add(false);
+                }else if(s.substring(2,4).equals("G3")) {
+                    for (String[] sarr : highArrD)
+                        if (s.substring(0, 2).equals(sarr[0]) && sarr[1].contains(s.charAt(4) + "")) boolarr.add(false);
+                }
+                //è¾¹è§’åˆæ³•
+                ArrayList<Boolean> connect= new ArrayList<>();
+
+                for(String a:strarr){
+                    if(!a.equals(s)){
+                        int xa = Integer.parseInt(a.charAt(3)+"");
+                        int ya = (int)(a.charAt(2)-65);
+                        int xs = Integer.parseInt(s.charAt(3)+"");
+                        int ys = (int)(s.charAt(2)-65);
+                        if(Math.abs(xa-xs)==1||Math.abs(ya-ys)==1){
+                            connect.add(true);
+                            String pica = testConnect(a);
+                            String picb = testConnect(s);
+                            if(a.charAt(3)==s.charAt(3)&&a.charAt(2)>s.charAt(2))
+                                boolarr.add(pica.charAt(1)==picb.charAt(3)||pica.charAt(1)=='-'||picb.charAt(3)=='-');//aä¸‹
+                            else if(a.charAt(3)==s.charAt(3)&&a.charAt(2)<s.charAt(2))
+                                boolarr.add(pica.charAt(3)==picb.charAt(1)||pica.charAt(3)=='-'||picb.charAt(1)=='-');//aä¸Š
+                            else if(a.charAt(2)==s.charAt(2)&&a.charAt(3)>s.charAt(3))
+                                boolarr.add(pica.charAt(0)==picb.charAt(2)||pica.charAt(0)=='-'||picb.charAt(2)=='-');//aå³
+                            else if(a.charAt(2)==s.charAt(2)&&a.charAt(3)<s.charAt(3))
+                                boolarr.add(pica.charAt(2)==picb.charAt(0)||pica.charAt(2)=='-'||picb.charAt(0)=='-');//aå·¦
+                        } else if(start.contains(a.substring(2,4))) connect.add(true);
+                        else
+                            connect.add(false);
+                    }
+                }
+                if(!connect.contains(true)) boolarr.add(false);
+                if(start.contains(s.substring(2,4))) isolate.add(true);
+                else isolate.add(false);
+            }
+            if(!isolate.contains(true)) boolarr.add(false);
+        }
+        if(boolarr.contains(false)) return false;
+        else return true;
         // FIXME Task 6: determine whether the given placement sequence is valid
-        return false;
+    }
+    //LEFT-TOP-RIGHT-BOTTOM R = RAIL, H=HIGH, E =ELEVATED
+    private static String testConnect(String input){
+        String pic = input.substring(0,2);
+        String ori = input.charAt(4)+"";
+        if(pic.equals("S0")) pic="HHHR";
+        else if(pic.equals("S1")) pic="RHRR";
+        else if(pic.equals("S2")) pic="HHHH";
+        else if(pic.equals("S3")) pic="RRRR";
+        else if(pic.equals("S4")) pic="HHRR";
+        else if(pic.equals("S5")) pic="RHRH";
+        else if(pic.equals("A0")) pic="RR--";
+        else if(pic.equals("A1")) pic="-R-R";
+        else if(pic.equals("A2")) pic="-RRR";
+        else if(pic.equals("A3")) pic="-HHH";
+        else if(pic.equals("A4")) pic="-H-H";
+        else if(pic.equals("A5")) pic="HH--";
+        else if(pic.equals("B0")) pic="-H-R";
+        else if(pic.equals("B1")) pic="-HR-";
+        else if(pic.equals("B2")) pic="RHRH";
+        String out = rolate(pic,ori);
+        return out;
+    }
+    private static String rolate(String pic, String ori){
+        int orit = Integer.parseInt(ori);
+        char[] pic_out = new char[4];
+        if(orit<4){
+            for (int i = 0; i < 4; i++)
+                pic_out[(orit+i)%4] = pic.charAt(i);
+        }else{
+            char[] flip = {pic.charAt(2),pic.charAt(1),pic.charAt(0),pic.charAt(3)};
+            for (int i = 0; i < 4; i++)
+                pic_out[(orit+i)%4] = flip[i];
+        }
+        String out ="";
+        for(char c:pic_out)
+            out+=c;
+        return out;
     }
 
     /**
@@ -124,8 +298,17 @@ public class RailroadInk
      * @return a String representing the die roll e.g. A0A4A3B2
      */
     public static String generateDiceRoll() {
+        String out = "";
+        for (int i = 0; i < 3; i++) {
+            Random diceA = new Random();
+            int ranDiceA = diceA.nextInt(5);
+            out+=("A"+ranDiceA);
+        }
+        Random diceB = new Random();
+        int ranDiceB = diceB.nextInt(2);
+        out+=("B"+ranDiceB);
         // FIXME Task 7: generate a dice roll
-        return "";
+        return out;
     }
 
     /**
@@ -170,6 +353,11 @@ public class RailroadInk
     public static int getAdvancedScore(String boardString) {
         // FIXME Task 12: compute the total score including bonus points
         return -1;
+    }
+
+    public static void main(String[] args) {
+        //System.out.println(testConnect("A0D65"));
+        System.out.println(isValidPlacementSequence("A4B10A4C10B2D10"));
     }
 }
 

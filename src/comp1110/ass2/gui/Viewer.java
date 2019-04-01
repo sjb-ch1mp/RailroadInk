@@ -55,15 +55,15 @@ public class Viewer extends Application {
         // FIXME Task 4: implement the simple placement viewer
 
         /*
-        * The makePlacement() method takes valid placement strings
-        * and puts them onto boardProper after clearing
-        * any previous placement (if it exists).
-        *
-        * NOTE: The makePlacement() method DOES NOT apply the placement
-        * rules of the game as this was not a requirement of Task 4.
-        * It is simply to test whether the placement strings can be translated
-        * into an actual placement on the game board.
-        * */
+         * The makePlacement() method takes valid placement strings
+         * and puts them onto boardProper after clearing
+         * any previous placement (if it exists).
+         *
+         * NOTE: The makePlacement() method DOES NOT apply the placement
+         * rules of the game as this was not a requirement of Task 4.
+         * It is simply to test whether the placement strings can be translated
+         * into an actual placement on the game board.
+         * */
 
         if(placement.length() == 5 && RailroadInk.isTilePlacementWellFormed(placement))
         { //if placementString is valid
