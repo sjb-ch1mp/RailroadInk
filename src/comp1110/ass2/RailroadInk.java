@@ -1,3 +1,4 @@
+package comp1110.ass2;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -113,22 +114,22 @@ public class RailroadInk
             String picb = testConnect(tilePlacementStringB);
             if(tilePlacementStringA.charAt(3)==tilePlacementStringB.charAt(3)&&tilePlacementStringA.charAt(2)>tilePlacementStringB.charAt(2)){
                 if(pica.charAt(1)=='-'|| picb.charAt(3)=='-')return false;
-                return pica.charAt(1)==picb.charAt(3);//a下
+                return pica.charAt(1)==picb.charAt(3);//a down
             }
             else if(tilePlacementStringA.charAt(3)==tilePlacementStringB.charAt(3)&&tilePlacementStringA.charAt(2)<tilePlacementStringB.charAt(2))
             {
                 if(pica.charAt(3)=='-'|| picb.charAt(1)=='-')return false;
-                return pica.charAt(3)==picb.charAt(1);//a上
+                return pica.charAt(3)==picb.charAt(1);//a up
             }
             else if(tilePlacementStringA.charAt(2)==tilePlacementStringB.charAt(2)&&tilePlacementStringA.charAt(3)>tilePlacementStringB.charAt(3))
             {
                 if(pica.charAt(0)=='-'|| picb.charAt(2)=='-')return false;
-                return pica.charAt(0)==picb.charAt(2);//a右
+                return pica.charAt(0)==picb.charAt(2);//a right
             }
             else if(tilePlacementStringA.charAt(2)==tilePlacementStringB.charAt(2)&&tilePlacementStringA.charAt(3)<tilePlacementStringB.charAt(3))
             {
                 if(pica.charAt(2)=='-'|| picb.charAt(0)=='-')return false;
-                else return pica.charAt(2)==picb.charAt(0);//a左
+                else return pica.charAt(2)==picb.charAt(0);//a left
             }else return false;
         }
         else return false;
@@ -215,7 +216,7 @@ public class RailroadInk
                     for (String[] sarr : highArrD)
                         if (s.substring(0, 2).equals(sarr[0]) && sarr[1].contains(s.charAt(4) + "")) boolarr.add(false);
                 }
-                //边角合法
+                //marginal legal
                 ArrayList<Boolean> connect= new ArrayList<>();
 
                 for(String a:strarr){
