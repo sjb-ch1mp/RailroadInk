@@ -1,5 +1,3 @@
-import com.sun.org.apache.xpath.internal.operations.Bool;
-
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -52,6 +50,7 @@ public class RailroadInk
      * @return true if the tile placement is well formed
      */
     public static boolean isTilePlacementWellFormed(String tilePlacementString) {
+        if(tilePlacementString.length()%5!=0) return false;
         char first = tilePlacementString.charAt(0);
         char second = tilePlacementString.charAt(1);
         char third = tilePlacementString.charAt(2);
@@ -59,6 +58,8 @@ public class RailroadInk
         char fifth = tilePlacementString.charAt(4);
 
         if (first =='A' || first == 'B' || first == 'S' ) {
+            if(first=='B')
+                if(Integer.parseInt(second+"")>2) return false;
             if (second >= '0' && second <= '5' || second >= '0' && second <= '2') {
                 if (third >= 'A' && third <= 'G') {
                     if (fourth >= '0' && fourth <= '6') {
@@ -69,6 +70,7 @@ public class RailroadInk
                 }
             }
         }
+
         // FIXME Task 2: determine whether a tile placement is well-formed
         return false;
     }
@@ -111,26 +113,27 @@ public class RailroadInk
             String picb = testConnect(tilePlacementStringB);
             if(tilePlacementStringA.charAt(3)==tilePlacementStringB.charAt(3)&&tilePlacementStringA.charAt(2)>tilePlacementStringB.charAt(2)){
                 if(pica.charAt(1)=='-'|| picb.charAt(3)=='-')return false;
-                return pica.charAt(1)==picb.charAt(3);//aä¸‹
+                return pica.charAt(1)==picb.charAt(3);//a下
             }
             else if(tilePlacementStringA.charAt(3)==tilePlacementStringB.charAt(3)&&tilePlacementStringA.charAt(2)<tilePlacementStringB.charAt(2))
             {
                 if(pica.charAt(3)=='-'|| picb.charAt(1)=='-')return false;
-                return pica.charAt(3)==picb.charAt(1);//aä¸Š
+                return pica.charAt(3)==picb.charAt(1);//a上
             }
             else if(tilePlacementStringA.charAt(2)==tilePlacementStringB.charAt(2)&&tilePlacementStringA.charAt(3)>tilePlacementStringB.charAt(3))
             {
                 if(pica.charAt(0)=='-'|| picb.charAt(2)=='-')return false;
-                return pica.charAt(0)==picb.charAt(2);//aå³
+                return pica.charAt(0)==picb.charAt(2);//a右
             }
             else if(tilePlacementStringA.charAt(2)==tilePlacementStringB.charAt(2)&&tilePlacementStringA.charAt(3)<tilePlacementStringB.charAt(3))
             {
                 if(pica.charAt(2)=='-'|| picb.charAt(0)=='-')return false;
-                else return pica.charAt(2)==picb.charAt(0);//aå·¦
+                else return pica.charAt(2)==picb.charAt(0);//a左
             }else return false;
         }
         else return false;
     }
+
 
     /**
      * Given a well-formed board string representing an ordered list of placements,
@@ -185,7 +188,7 @@ public class RailroadInk
                         !cms.contains(s.charAt(2)+"") &&
                         (Integer.parseInt(s.charAt(3)+"")<0 || Integer.parseInt(s.charAt(3)+"")>6) &&
                         (Integer.parseInt(s.charAt(4)+"")<0 || Integer.parseInt(s.charAt(4)+"")>7)) boolarr.add(false);
-                    //å†…å®¹åˆæ³•æ•°åˆ—
+                //内容合法数列
                 else boolarr.add(true);
                 if(s.substring(2,4).equals("A1")||s.substring(2,4).equals("A5")){
                     for(String[] sarr:railArrT)
@@ -212,7 +215,7 @@ public class RailroadInk
                     for (String[] sarr : highArrD)
                         if (s.substring(0, 2).equals(sarr[0]) && sarr[1].contains(s.charAt(4) + "")) boolarr.add(false);
                 }
-                //è¾¹è§’åˆæ³•
+                //边角合法
                 ArrayList<Boolean> connect= new ArrayList<>();
 
                 for(String a:strarr){
@@ -226,15 +229,15 @@ public class RailroadInk
                             String pica = testConnect(a);
                             String picb = testConnect(s);
                             if(a.charAt(3)==s.charAt(3)&&a.charAt(2)>s.charAt(2))
-                                boolarr.add(pica.charAt(1)==picb.charAt(3)||pica.charAt(1)=='-'||picb.charAt(3)=='-');//aä¸‹
+                                boolarr.add(pica.charAt(1)==picb.charAt(3)||pica.charAt(1)=='-'||picb.charAt(3)=='-');//a下
                             else if(a.charAt(3)==s.charAt(3)&&a.charAt(2)<s.charAt(2))
-                                boolarr.add(pica.charAt(3)==picb.charAt(1)||pica.charAt(3)=='-'||picb.charAt(1)=='-');//aä¸Š
+                                boolarr.add(pica.charAt(3)==picb.charAt(1)||pica.charAt(3)=='-'||picb.charAt(1)=='-');//a上
                             else if(a.charAt(2)==s.charAt(2)&&a.charAt(3)>s.charAt(3))
-                                boolarr.add(pica.charAt(0)==picb.charAt(2)||pica.charAt(0)=='-'||picb.charAt(2)=='-');//aå³
+                                boolarr.add(pica.charAt(0)==picb.charAt(2)||pica.charAt(0)=='-'||picb.charAt(2)=='-');//a右
                             else if(a.charAt(2)==s.charAt(2)&&a.charAt(3)<s.charAt(3))
-                                boolarr.add(pica.charAt(2)==picb.charAt(0)||pica.charAt(2)=='-'||picb.charAt(0)=='-');//aå·¦
+                                boolarr.add(pica.charAt(2)==picb.charAt(0)||pica.charAt(2)=='-'||picb.charAt(0)=='-');//a左
                         } else if(start.contains(a.substring(2,4))) connect.add(true);
-                        else
+                         else
                             connect.add(false);
                     }
                 }
@@ -248,7 +251,7 @@ public class RailroadInk
         else return true;
         // FIXME Task 6: determine whether the given placement sequence is valid
     }
-    //LEFT-TOP-RIGHT-BOTTOM R = RAIL, H=HIGH, E =ELEVATED
+//LEFT-TOP-RIGHT-BOTTOM R = RAIL, H=HIGH
     private static String testConnect(String input){
         String pic = input.substring(0,2);
         String ori = input.charAt(4)+"";
@@ -355,9 +358,6 @@ public class RailroadInk
         return -1;
     }
 
-    public static void main(String[] args) {
-        //System.out.println(testConnect("A0D65"));
-        System.out.println(isValidPlacementSequence("A4B10A4C10B2D10"));
-    }
 }
+
 
