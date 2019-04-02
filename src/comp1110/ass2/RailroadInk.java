@@ -86,6 +86,7 @@ public class RailroadInk
      */
     public static boolean isBoardStringWellFormed(String boardString) {
         // FIXME Task 3: determine whether a board string is well-formed
+
         int specialCount=0;
         boolean allGoodPlacement=true;
         if (boardString == null || boardString.length() /5 > 31 || boardString.equals("") || boardString.length()%5!=0) {
@@ -102,7 +103,6 @@ public class RailroadInk
                 }
             }
         }
-
         return specialCount<=3 && allGoodPlacement;
     }
 
