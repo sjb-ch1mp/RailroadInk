@@ -1,5 +1,6 @@
 package comp1110.ass2;
 
+import comp1110.ass2.gui.Viewer;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.transform.Rotate;
@@ -33,12 +34,14 @@ public class ImageHandler
         { //If orientation is one of the mirrored orientations, start from the mirrored image
 
             //This is a temporary solution until I can get rid of the bugs when mirroring programmatically!!!!
-            img = new ImageView(new Image(new File(URI_BASE + tile.getId() + "_mirrored" + ext).toURI().toString()));
+            //img = new ImageView(new Image(new File(URI_BASE + tile.getId() + "_mirrored" + ext).toURI().toString()));
+            img = new ImageView(new Image("file:" + URI_BASE + tile.getId() + "_mirrored" + ext));
             orientation -= 4;
         }
         else
         { //Start from the image for orientation zero
-            img = new ImageView(new Image(new File(URI_BASE + tile.getId() + ext).toURI().toString()));
+            //img = new ImageView(new Image(new File(URI_BASE + tile.getId() + ext).toURI().toString()));
+            img = new ImageView(new Image("file:" + URI_BASE + tile.getId() + ext));
         }
 
         //set the dimensions of the ImageView before rotating, otherwise funny things happen
@@ -65,7 +68,9 @@ public class ImageHandler
      */
     public static ImageView getExitImage(char side, char type)
     {
-        ImageView img = new ImageView(new Image(new File(URI_BASE + "X" + type + ext).toURI().toString()));
+        //ImageView img = new ImageView(new Image(new File(URI_BASE + "X" + type + ext).toURI().toString()));
+        ImageView img = new ImageView(new Image("file:" + URI_BASE + "X" + type + ext));
+
         img = setDimensions(img);
 
         switch(side)
@@ -92,7 +97,8 @@ public class ImageHandler
      */
     public static ImageView getMiscTile(String tile)
     {
-        ImageView img = new ImageView(new Image(new File(URI_BASE + tile + ext).toURI().toString()));
+        //ImageView img = new ImageView(new Image(new File(URI_BASE + tile + ext).toURI().toString()));
+        ImageView img = new ImageView(new Image("file:" + URI_BASE + tile + ext));
         img = setDimensions(img);
         return img;
     }
