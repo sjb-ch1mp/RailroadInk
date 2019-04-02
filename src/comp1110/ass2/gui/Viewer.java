@@ -100,10 +100,7 @@ public class Viewer extends Application {
     {
         if(placement.length() > 5 && RailroadInk.isBoardStringWellFormed(placement))
         { //placement is board
-            if(boardData != null)
-            {
-                boardData = new Board();
-            }
+            boardData = new Board();
             if(boardData.addBoardString(placement))
             {
                 for(Map.Entry<String, Tile> tile : boardData.getPlacements().entrySet())
@@ -161,6 +158,7 @@ public class Viewer extends Application {
 
     private void resetBoard()
     {
+        textWarning.setText("");
         if(prevPlacements != null)
         {
             for(Placement p : prevPlacements)
@@ -198,6 +196,7 @@ public class Viewer extends Application {
         withRules = new CheckBox("Rules");
         withRules.setOnAction(ae ->
         {
+            textWarning.setText("");
             resetBoard();
             if(!btnReset.isVisible())
             {
