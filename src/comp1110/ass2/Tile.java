@@ -228,4 +228,9 @@ public class Tile
         constructors.put("S4", new Character[]{'S', 'H', 'R', 'R', 'H'});
         constructors.put("S5", new Character[]{'S', 'H', 'R', 'H', 'R'});
     }
+
+    public String getPlacementString()
+    {
+        return id + row + column + orientation;
+    }
 }

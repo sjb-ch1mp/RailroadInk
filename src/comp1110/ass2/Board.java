@@ -53,6 +53,23 @@ public class Board
         exitCoords.put("B0", "WR");
     }
 
+    public boolean addBoardString(String boardString)
+    {
+        if(RailroadInk.isBoardStringWellFormed(boardString))
+        {
+            for(int i=0; i<boardString.length(); i+= 5)
+            {
+                boolean legalPlacement = addTile(boardString.substring(i, i+5));
+                if(!legalPlacement)
+                {
+                    placements = new HashMap<>();
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     /**
      * The addTile() method takes a placement string and applies the placement
      * rules of the Railroad Ink game. It first checks whether there are any
@@ -347,5 +364,10 @@ public class Board
             }
         }
         return false;
+    }
+
+    public HashMap<String, Tile> getPlacements()
+    {
+        return placements;
     }
 }

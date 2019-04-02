@@ -6,6 +6,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
@@ -19,7 +20,8 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 
-import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * A very simple viewer for tile placements in the Railroad Ink game.
@@ -35,16 +37,16 @@ public class Viewer extends Application {
     private static final int VIEWER_WIDTH = 1024;
     private static final int VIEWER_HEIGHT = 768;
 
-    private static final String URI_BASE = "assets/";
-
-    private Board boardData;
+    private CheckBox withRules;
+    private Board boardData = null;
     private final VBox board = new VBox();
     private GridPane boardProper;
     private final VBox root = new VBox();
     private final Group controls = new Group();
-    private Placement prevPlacement = null;
+    private ArrayList<Placement> prevPlacements = null;
     private TextField textField;
     private Text textWarning;
+    private Button btnReset;
 
     /**
      * Draw a placement in the window, removing any previously drawn one
@@ -64,46 +66,128 @@ public class Viewer extends Application {
          * It is simply to test whether the placement strings can be translated
          * into an actual placement on the game board.
          * */
-
-        if(placement.length() == 5 && RailroadInk.isTilePlacementWellFormed(placement))
-        { //if placementString is valid
-            Placement p = new Placement(placement);
-            ImageView img;
-            if(prevPlacement != null)
-            { //if this is not the first placement, replace the previous placement with an appropriate tile
-                if(boardData.isCenterCoord(prevPlacement.getCoords()))
-                { //replace with center tile
-                    img = ImageHandler.getMiscTile("CENTER_TILE");
+        if(placement.length() > 5 && RailroadInk.isBoardStringWellFormed(placement))
+        {
+            if(prevPlacements != null)
+            {
+                for(int i=0; i<prevPlacements.size(); i++)
+                {
+                    refreshTile(prevPlacements.get(i));
                 }
-                else
-                { //replace with blank tile
-                    img = ImageHandler.getMiscTile("BLANK_TILE");
-                }
-
-                //replace previous placement with blank/center tile
-                boardProper.add(img, prevPlacement.getColumn(), prevPlacement.getRowAsInt());
+                prevPlacements.clear();
             }
-
-            //create tile for this placement
-            Tile tile = new Tile(p.getFullId());
-            tile.updateOrientation(p.getOrientation());
-            tile.addCoordinates(p.getCoords());
-
-            //get the appropriate image
-            img = ImageHandler.getTileImage(tile);
-
-            //add the tile to the board
-            boardProper.add(img, p.getColumn(), p.getRowAsInt());
-            textWarning.setText("");
-
-            //store p as prevPlacement
-            prevPlacement = p;
+            for(int i=0; i<placement.length(); i+= 5)
+            {
+                makeSinglePlacement(placement.substring(i, i+5));
+            }
+        }
+        else if(placement.length() == 5 && RailroadInk.isTilePlacementWellFormed(placement))
+        {
+            if(prevPlacements != null)
+            {//if this is not the first placement, replace the previous placement with an appropriate tile
+                refreshTile(prevPlacements.get(0));
+                prevPlacements.clear();
+            }
+            makeSinglePlacement(placement);
         }
         else
-        { //otherwise warn user that placement string is wrong
+        {
             textWarning.setText("Bad placement string! Try again.");
         }
+    }
 
+    void makePlacementWithRules(String placement)
+    {
+        if(placement.length() > 5 && RailroadInk.isBoardStringWellFormed(placement))
+        { //placement is board
+            if(boardData != null)
+            {
+                boardData = new Board();
+            }
+            if(boardData.addBoardString(placement))
+            {
+                for(Map.Entry<String, Tile> tile : boardData.getPlacements().entrySet())
+                {
+                    makeSinglePlacement(tile.getValue().getCoords());
+                }
+            }
+            else
+            {
+                textWarning.setText("Board string contains illegal placements! Try again.");
+            }
+
+        }
+        else if(placement.length() == 5 && RailroadInk.isTilePlacementWellFormed(placement))
+        {
+            if(boardData.addTile(placement))
+            {
+                makeSinglePlacement(placement);
+            }
+            else
+            {
+                textWarning.setText("Illegal placement! Try again.");
+            }
+        }
+        else
+        {
+            textWarning.setText("Bad placement string! Try again.");
+        }
+    }
+
+    void makeSinglePlacement(String placement)
+    {
+        Placement p = new Placement(placement);
+        ImageView img;
+
+        //create tile for this placement
+        Tile tile = new Tile(p.getFullId());
+        tile.updateOrientation(p.getOrientation());
+        tile.addCoordinates(p.getCoords());
+
+        //get the appropriate image
+        img = ImageHandler.getTileImage(tile);
+
+        //add the tile to the board
+        boardProper.add(img, p.getColumn(), p.getRowAsInt());
+        textWarning.setText("");
+
+        if(prevPlacements == null)
+        {
+            prevPlacements = new ArrayList<>();
+        }
+        prevPlacements.add(new Placement(placement));
+
+    }
+
+    private void resetBoard()
+    {
+        if(prevPlacements != null)
+        {
+            for(Placement p : prevPlacements)
+            {
+                refreshTile(p);
+            }
+        }
+        if(boardData != null)
+        {
+            boardData = new Board();
+        }
+    }
+
+    private void refreshTile(Placement prevPlacement)
+    {
+        ImageView img;
+        if(boardData.isCenterCoord(prevPlacement.getCoords()))
+        { //replace with center tile
+            img = ImageHandler.getMiscTile("CENTER_TILE");
+        }
+        else
+        { //replace with blank tile
+            img = ImageHandler.getMiscTile("BLANK_TILE");
+        }
+
+        //replace previous placement with blank/center tile
+        boardProper.add(img, prevPlacement.getColumn(), prevPlacement.getRowAsInt());
     }
 
     /**
@@ -111,6 +195,19 @@ public class Viewer extends Application {
      */
     private void makeControls() {
 
+        withRules = new CheckBox("Rules");
+        withRules.setOnAction(ae ->
+        {
+            resetBoard();
+            if(!btnReset.isVisible())
+            {
+                btnReset.setVisible(true);
+            }
+            else
+            {
+                btnReset.setVisible(false);
+            }
+        });
         Label label1 = new Label("Placement:");
         textField = new TextField();
         textField.setPrefWidth(300);
@@ -119,17 +216,33 @@ public class Viewer extends Application {
             KeyCode key = ae.getCode();
             if(key == KeyCode.ENTER)
             {
-                makePlacement(textField.getText());
-                textField.clear();
+                if(withRules.isSelected())
+                {
+                    makePlacementWithRules(textField.getText());
+                    textField.clear();
+                }
+                else
+                {
+                    makePlacement(textField.getText());
+                    textField.clear();
+                }
             }
         });
         Button button = new Button("Refresh");
         button.setOnAction(e -> {
-            makePlacement(textField.getText());
-            textField.clear();
+            if(withRules.isSelected())
+            {
+                makePlacementWithRules(textField.getText());
+                textField.clear();
+            }
+            else
+            {
+                makePlacement(textField.getText());
+                textField.clear();
+            }
         });
         HBox hb = new HBox();
-        hb.getChildren().addAll(label1, textField, button);
+        hb.getChildren().addAll(label1, textField, button, withRules);
         hb.setSpacing(10);
         hb.setLayoutX(130);
         hb.setLayoutY(VIEWER_HEIGHT - 50);
@@ -276,7 +389,11 @@ public class Viewer extends Application {
         textWarning = new Text();
         textWarning.setFont(Font.font("Impact", FontWeight.BOLD, 20));
         textWarning.setTextAlignment(TextAlignment.CENTER);
+        btnReset = new Button("Reset board");
+        btnReset.setVisible(false);
+        btnReset.setOnAction(ae -> resetBoard());
 
+        root.getChildren().add(btnReset);
         root.getChildren().add(board);
         root.getChildren().add(textWarning);
         root.getChildren().add(controls);
