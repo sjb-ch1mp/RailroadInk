@@ -99,7 +99,6 @@ public class RailroadInk
                 }
                 if (!isTilePlacementWellFormed(tilePlacementString)) {
                     allGoodPlacement = false;
-                    //return false;
                 }
             }
         }
