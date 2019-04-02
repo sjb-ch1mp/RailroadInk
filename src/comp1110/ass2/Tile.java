@@ -1,5 +1,7 @@
 package comp1110.ass2;
 
+import java.util.HashMap;
+
 /**
  * The Tile enum makes it easier to handle and access Tile data and behaviour.
  * A couple important aspects of Tile is that it will keep track of which edges
@@ -7,27 +9,11 @@ package comp1110.ass2;
  * to get the correct image of a Tile from assets.
  */
 
-public enum Tile
+public class Tile
 {
-    A0("A0", 'N', 'R', '0', '0', 'R'),
-    A1("A1", 'N', 'R', '0', 'R', '0'),
-    A2("A2", 'N', 'R', 'R', 'R', '0'),
-    A3("A3", 'N', 'H', 'H', 'H', '0'),
-    A4("A4", 'N', 'H', '0', 'H', '0'),
-    A5("A5", 'N', 'H', '0', '0', 'H'),
-    B0("B0", 'S', 'H', '0', 'R', '0'),
-    B1("B1", 'S', 'H', 'R', '0', '0'),
-    B2("B2", 'O', 'H', 'R', 'H', 'R'),
-    S0("S0", 'S', 'H', 'H', 'R', 'H'),
-    S1("S1", 'S', 'H', 'R', 'R', 'R'),
-    S2("S2", 'N', 'H', 'H', 'H', 'H'),
-    S3("S3", 'N', 'R', 'R', 'R', 'R'),
-    S4("S4", 'S', 'H', 'R', 'R', 'H'),
-    S5("S5", 'S', 'H', 'R', 'H', 'R');
-
+    HashMap<String, Character[]> constructors;
     private final int TOTAL_ORIENTATIONS = 8;
     private char[] edges; //edges stores the connectors on each edge of the tile (north, east, south, west)
-    private char[] edgesOrientationZero; //edgesOrientationZero stores the initial edges array for the resetEdges() method
     private String id;
     private int orientation;
     private char routeType; //stores the route type, 'O' = overpass, 'S' = station, 'N' = neither
@@ -35,24 +21,20 @@ public enum Tile
     private int column; //this is for calculating score
     private boolean used; //this stores whether the tile has been used (dices and special tiles)
 
-    Tile(String id, char routeType, char north, char east, char south, char west)
+    public Tile(String id)
     {
+        buildConstructors();
+
         this.id = id;
         this.orientation = 0;
-        this.routeType = routeType;
+        this.routeType = constructors.get(id)[0];
         used = false;
 
         edges = new char[4];
-        edges[0] = north;
-        edges[1] = east;
-        edges[2] = south;
-        edges[3] = west;
-
-        edgesOrientationZero = new char[4];
-        for(int i=0; i<edges.length; i++)
-        {
-            edgesOrientationZero[i] = edges[i];
-        }
+        edges[0] = constructors.get(id)[1];
+        edges[1] = constructors.get(id)[2];
+        edges[2] = constructors.get(id)[3];
+        edges[3] = constructors.get(id)[4];
     }
 
     /**
@@ -181,10 +163,10 @@ public enum Tile
      */
     private void resetEdges()
     {
-        for(int i=0; i<edges.length; i++)
-        {
-            edges[i] = edgesOrientationZero[i];
-        }
+        edges[0] = constructors.get(id)[1];
+        edges[1] = constructors.get(id)[2];
+        edges[2] = constructors.get(id)[3];
+        edges[3] = constructors.get(id)[4];
     }
 
     public char[] getEdges()
@@ -213,5 +195,37 @@ public enum Tile
     public boolean isUsed()
     {
         return used;
+    }
+
+    /**
+     * Having Tile as an enum was causing issues because rotating any tile stored
+     * in a Board object rotated ALL tiles of that type (because an enum is implicitly static).
+     * The Tile enum is now implemented as a class, but retains a similar function as an enum
+     * with the buildConstructors() method. This is called when a new tile is made and builds
+     * the HashMap 'constructors' which stores the routeType and edge information for each Tile.
+     * Once built, the correct information for this instance of the Tile class can be passed to
+     * the object.
+     *
+     * The order in which information is stored in the Character[] array is:
+     *  - routeType, north, east, south, west
+     */
+    private void buildConstructors()
+    {
+        constructors = new HashMap<>();
+        constructors.put("A0", new Character[]{'N', 'R', '0', '0', 'R'});
+        constructors.put("A1", new Character[]{'N', 'R', '0', 'R', '0'});
+        constructors.put("A2", new Character[]{'N', 'R', 'R', 'R', '0'});
+        constructors.put("A3", new Character[]{'N', 'H', 'H', 'H', '0'});
+        constructors.put("A4", new Character[]{'N', 'H', '0', 'H', '0'});
+        constructors.put("A5", new Character[]{'N', 'H', '0', '0', 'H'});
+        constructors.put("B0", new Character[]{'S', 'H', '0', 'R', '0'});
+        constructors.put("B1", new Character[]{'S', 'H', 'R', '0', '0'});
+        constructors.put("B2", new Character[]{'O', 'H', 'R', 'H', 'R'});
+        constructors.put("S0", new Character[]{'S', 'H', 'H', 'R', 'H'});
+        constructors.put("S1", new Character[]{'S', 'H', 'R', 'R', 'R'});
+        constructors.put("S2", new Character[]{'N', 'H', 'H', 'H', 'H'});
+        constructors.put("S3", new Character[]{'N', 'R', 'R', 'R', 'R'});
+        constructors.put("S4", new Character[]{'S', 'H', 'R', 'R', 'H'});
+        constructors.put("S5", new Character[]{'S', 'H', 'R', 'H', 'R'});
     }
 }

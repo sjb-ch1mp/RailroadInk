@@ -24,12 +24,12 @@ public class SpecialTiles
         * special one is at imageRefs[0].
         * */
         specialTiles = new HashMap<>(0);
-        specialTiles.put("S1", Tile.valueOf("S0"));
-        specialTiles.put("S2", Tile.valueOf("S1"));
-        specialTiles.put("S3", Tile.valueOf("S2"));
-        specialTiles.put("S4", Tile.valueOf("S3"));
-        specialTiles.put("S5", Tile.valueOf("S4"));
-        specialTiles.put("S6", Tile.valueOf("S5"));
+        specialTiles.put("S1", new Tile("S0"));
+        specialTiles.put("S2", new Tile("S1"));
+        specialTiles.put("S3", new Tile("S2"));
+        specialTiles.put("S4", new Tile("S3"));
+        specialTiles.put("S5", new Tile("S4"));
+        specialTiles.put("S6", new Tile("S5"));
 
         specialCounter = 0;
     }

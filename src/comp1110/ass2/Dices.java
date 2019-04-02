@@ -24,10 +24,10 @@ public class Dices
         * the ImageView reference for dice one is at imageRefs[0].
         * */
         dices = new HashMap<>(0);
-        dices.put("D1", Tile.valueOf("A0"));
-        dices.put("D2", Tile.valueOf("A1"));
-        dices.put("D3", Tile.valueOf("A2"));
-        dices.put("D4", Tile.valueOf("B0"));
+        dices.put("D1", new Tile("A0"));
+        dices.put("D2", new Tile("A1"));
+        dices.put("D3", new Tile("A2"));
+        dices.put("D4", new Tile("B0"));
 
         diceCounter = 0;
     }
@@ -42,10 +42,10 @@ public class Dices
         Random rand = new Random();
         diceCounter = 0;
         dices = new HashMap<>(0);
-        dices.put("D1", Tile.valueOf("A" + rand.nextInt(6)));
-        dices.put("D2", Tile.valueOf("A" + rand.nextInt(6)));
-        dices.put("D3", Tile.valueOf("A" + rand.nextInt(6)));
-        dices.put("D4", Tile.valueOf("B" + rand.nextInt(3)));
+        dices.put("D1", new Tile("A" + rand.nextInt(6)));
+        dices.put("D2", new Tile("A" + rand.nextInt(6)));
+        dices.put("D3", new Tile("A" + rand.nextInt(6)));
+        dices.put("D4", new Tile("B" + rand.nextInt(3)));
     }
 
     /**
