@@ -20,6 +20,7 @@ public class Placement
     {
         //constructs a placement from a placementString
         type = placementString.charAt(0);
+        type = placementString.charAt(0);
         id = placementString.charAt(1);
         row = placementString.charAt(2);
         column = Integer.parseInt(placementString.substring(3, 4));

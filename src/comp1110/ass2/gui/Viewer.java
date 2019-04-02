@@ -85,7 +85,7 @@ public class Viewer extends Application {
             }
 
             //create tile for this placement
-            Tile tile = Tile.valueOf(p.getFullId());
+            Tile tile = new Tile(p.getFullId());
             tile.updateOrientation(p.getOrientation());
             tile.addCoordinates(p.getCoords());
 

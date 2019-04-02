@@ -15,7 +15,10 @@ import java.io.File;
 public class ImageHandler
 {
     private static final double IMAGE_DIMENSIONS = 60;
-    private static final String URI_BASE = "src\\comp1110\\ass2\\gui\\assets\\";
+    //private static final String URI_BASE = "src\\comp1110\\ass2\\gui\\assets\\";
+    //private static final String fs = System.getProperty("file.separator");
+    //private static final String URI_BASE = "src" + fs + "comp1110" + fs + "ass2" + fs + "gui" + fs + "assets" + fs;
+    private static final String URI_BASE = "assets/";
     private static final String ext = ".png";
     private static int orientation;
 
@@ -28,20 +31,23 @@ public class ImageHandler
      */
     public static ImageView getTileImage(Tile tile)
     {
-        ImageView img;
+        ImageView img = new ImageView();
         orientation = tile.getOrientation();
         if(orientation >= 4)
         { //If orientation is one of the mirrored orientations, start from the mirrored image
 
             //This is a temporary solution until I can get rid of the bugs when mirroring programmatically!!!!
             //img = new ImageView(new Image(new File(URI_BASE + tile.getId() + "_mirrored" + ext).toURI().toString()));
-            img = new ImageView(new Image("file:" + URI_BASE + tile.getId() + "_mirrored" + ext));
+            //img = new ImageView(new Image("file:" + URI_BASE + tile.getId() + "_mirrored" + ext));
+            //img = new ImageView("file:" + URI_BASE + tile.getId() + "_mirrored" + ext);
+            img.setImage(new Image(Viewer.class.getResource(URI_BASE + tile.getId() + "_mirrored" + ext).toString()));
             orientation -= 4;
         }
         else
         { //Start from the image for orientation zero
             //img = new ImageView(new Image(new File(URI_BASE + tile.getId() + ext).toURI().toString()));
-            img = new ImageView(new Image("file:" + URI_BASE + tile.getId() + ext));
+            //img = new ImageView(new Image("file:" + URI_BASE + tile.getId() + ext));
+            img.setImage(new Image(Viewer.class.getResource(URI_BASE + tile.getId() + ext).toString()));
         }
 
         //set the dimensions of the ImageView before rotating, otherwise funny things happen
@@ -69,8 +75,10 @@ public class ImageHandler
     public static ImageView getExitImage(char side, char type)
     {
         //ImageView img = new ImageView(new Image(new File(URI_BASE + "X" + type + ext).toURI().toString()));
-        ImageView img = new ImageView(new Image("file:" + URI_BASE + "X" + type + ext));
-
+        //ImageView img = new ImageView(new Image("file:" + URI_BASE + "X" + type + ext));
+        //ImageView img = new ImageView("file:" + URI_BASE + "X" + type + ext);
+        ImageView img = new ImageView();
+        img.setImage(new Image(Viewer.class.getResource(URI_BASE + "X" + type + ext).toString()));
         img = setDimensions(img);
 
         switch(side)
@@ -98,7 +106,10 @@ public class ImageHandler
     public static ImageView getMiscTile(String tile)
     {
         //ImageView img = new ImageView(new Image(new File(URI_BASE + tile + ext).toURI().toString()));
-        ImageView img = new ImageView(new Image("file:" + URI_BASE + tile + ext));
+        //ImageView img = new ImageView(new Image("file:" + URI_BASE + tile + ext));
+        //ImageView img = new ImageView("file:" + URI_BASE + tile + ext);
+        ImageView img = new ImageView();
+        img.setImage(new Image(Viewer.class.getResource(URI_BASE + tile + ext).toString()));
         img = setDimensions(img);
         return img;
     }

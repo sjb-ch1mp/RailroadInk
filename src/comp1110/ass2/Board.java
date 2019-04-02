@@ -68,7 +68,7 @@ public class Board
     public boolean addTile(String placementString)
     {
         //Adds a tile to the board if the placement is legal. Returns false if the placement is invalid
-        Tile newTile = Tile.valueOf(placementString.substring(0, 2));
+        Tile newTile = new Tile(placementString.substring(0, 2));
         newTile.updateOrientation(Integer.parseInt(placementString.substring(4)));
         newTile.addCoordinates(placementString.substring(2, 4));
 
