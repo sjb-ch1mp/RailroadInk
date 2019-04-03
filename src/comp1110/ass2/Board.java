@@ -53,23 +53,6 @@ public class Board
         exitCoords.put("B0", "WR");
     }
 
-    public boolean addBoardString(String boardString)
-    {
-        if(RailroadInk.isBoardStringWellFormed(boardString))
-        {
-            for(int i=0; i<boardString.length(); i+= 5)
-            {
-                boolean legalPlacement = addTile(boardString.substring(i, i+5));
-                if(!legalPlacement)
-                {
-                    placements = new HashMap<>();
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
     /**
      * The addTile() method takes a placement string and applies the placement
      * rules of the Railroad Ink game. It first checks whether there are any
@@ -107,32 +90,49 @@ public class Board
             else
             { //tile has been placed elsewhere - check for at least one legal connection with adjacent tiles
                 int legalConnection = 0;
+                String adjCoords;
                 if(newTile.getRow() > 'A')
                 { //check north
-                    if(placements.containsKey(getAdjCoords('N', newTile)))
+                    adjCoords = getAdjCoords('N', newTile);
+                    if(placements.containsKey(adjCoords))
                     {
-                        legalConnection++;
+                        if(newTile.getEdge('N') == placements.get(adjCoords).getEdge(getOppositeEdge('N')))
+                        {
+                            legalConnection++;
+                        }
                     }
                 }
                 if(newTile.getColumn() < 7)
                 { //check east
-                    if(placements.containsKey(getAdjCoords('E', newTile)))
+                    adjCoords = getAdjCoords('E', newTile);
+                    if(placements.containsKey(adjCoords))
                     {
-                        legalConnection++;
+                        if(newTile.getEdge('E') == placements.get(adjCoords).getEdge(getOppositeEdge('E')))
+                        {
+                            legalConnection++;
+                        }
                     }
                 }
                 if(newTile.getRow() < 'G')
                 { //check south
-                    if(placements.containsKey(getAdjCoords('S', newTile)))
+                    adjCoords = getAdjCoords('S', newTile);
+                    if(placements.containsKey(adjCoords))
                     {
-                        legalConnection++;
+                        if(newTile.getEdge('S') == placements.get(adjCoords).getEdge(getOppositeEdge('S')))
+                        {
+                            legalConnection++;
+                        }
                     }
                 }
                 if(newTile.getColumn() > 0)
                 { //check west
-                    if(placements.containsKey(getAdjCoords('W', newTile)))
+                    adjCoords = getAdjCoords('W', newTile);
+                    if(placements.containsKey(adjCoords))
                     {
-                        legalConnection++;
+                        if(newTile.getEdge('W') == placements.get(adjCoords).getEdge(getOppositeEdge('W')))
+                        {
+                            legalConnection++;
+                        }
                     }
                 }
                 if(legalConnection > 0)
@@ -178,7 +178,7 @@ public class Board
         { //check north
             chkCoords = getAdjCoords('N', newTile);
             if(placements.containsKey(chkCoords))
-            { //if the adjacent tiles south edge connector does not equal the new tiles north edge connector, it is illegal
+            {
                 if(edgesClash(chkCoords, newTile, 'N'))
                 {
                     return false;
@@ -189,7 +189,7 @@ public class Board
         { //check east
             chkCoords = getAdjCoords('E', newTile);
             if(placements.containsKey(chkCoords))
-            { //if the adjacent tiles west edge connector does not equal the new tiles east edge connector, it is illegal
+            {
                 if(edgesClash(chkCoords, newTile, 'E'))
                 {
                     return false;
@@ -200,7 +200,7 @@ public class Board
         { //check south
             chkCoords = getAdjCoords('S', newTile);
             if(placements.containsKey(chkCoords))
-            { //if the adjacent tiles north edge connector does not equal the new tiles south edge connector, it is illegal
+            {
                 if(edgesClash(chkCoords, newTile, 'S'))
                 {
                     return false;
@@ -211,7 +211,7 @@ public class Board
         { //check west
             chkCoords = getAdjCoords('W', newTile);
             if(placements.containsKey(chkCoords))
-            { //if the adjacent tiles east edge connector does not equal the new tiles west edge connector, it is illegal
+            {
                 if(edgesClash(chkCoords, newTile, 'W'))
                 {
                     return false;
@@ -235,9 +235,9 @@ public class Board
      */
     private boolean edgesClash(String chkCoords, Tile newTile, char thisEdge)
     {
-        if(newTile.getEdge(thisEdge) != 0)
+        if(newTile.getEdge(thisEdge) != '0')
         { //this edge is not 0
-            if(placements.get(chkCoords).getEdge(getOppositeEdge(thisEdge)) != 0)
+            if(placements.get(chkCoords).getEdge(getOppositeEdge(thisEdge)) != '0')
             { //the other edge is not 0
                 if(placements.get(chkCoords).getEdge(getOppositeEdge(thisEdge)) != newTile.getEdge(thisEdge))
                 { //and this edge != other edge
