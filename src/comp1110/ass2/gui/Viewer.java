@@ -21,7 +21,6 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 
 import java.util.ArrayList;
-import java.util.Map;
 
 /**
  * A very simple viewer for tile placements in the Railroad Ink game.
@@ -30,6 +29,7 @@ import java.util.Map;
  * class does not play a game, it just illustrates various tile placements.
  */
 public class Viewer extends Application {
+
     public static void main(String[] args) {
         launch(args);
     }
@@ -37,92 +37,98 @@ public class Viewer extends Application {
     private static final int VIEWER_WIDTH = 1024;
     private static final int VIEWER_HEIGHT = 768;
 
-    private CheckBox withRules;
-    private Board boardData = null;
-    private final HBox boardAndTiles = new HBox();
-    private final VBox tileContainer = new VBox();
-    private final VBox board = new VBox();
-    private GridPane boardProper;
+    private CheckBox withRules; //This checkbox is selected to apply the placement rules of the game
+    private Board boardData = null; //This Board object stores tiles when the rules are applied
+    private final HBox boardAndTiles = new HBox(); //Contains the board and the tileContainer
+    private final VBox tileContainer = new VBox(); //Contains the columns of tiles
+    private final VBox board = new VBox(); //Contains the board and textWarning
+    private GridPane boardProper; //The GridPane for the actual board
     private final VBox root = new VBox();
     private final Group controls = new Group();
-    private ArrayList<Placement> prevPlacements = null;
+    private ArrayList<Placement> prevPlacements = null; //Holds information about previous placements so that they can be removed
     private TextField textField;
     private Text textWarning;
-    private Button btnReset;
+    private Button btnReset; //Clears the board
 
     /**
-     * Draw a placement in the window, removing any previously drawn one
+     * This is the primary method that controls the flow of the placement string,
+     * depending upon whether a board string or single placement string has been entered
+     * and also whether or not the rules are being applied.
      *
      * @param placement A valid placement string
      */
     void makePlacement(String placement) {
         // FIXME Task 4: implement the simple placement viewer
 
-        /*
-         * The makePlacement() method takes valid placement strings
-         * and puts them onto boardProper after clearing
-         * any previous placement (if it exists).
-         *
-         * NOTE: The makePlacement() method DOES NOT apply the placement
-         * rules of the game as this was not a requirement of Task 4.
-         * It is simply to test whether the placement strings can be translated
-         * into an actual placement on the game board.
-         * */
         if(placement.length() > 5 && RailroadInk.isBoardStringWellFormed(placement))
-        {
+        { //placement is a valid board string
             if(prevPlacements != null)
-            {
+            { //if this is not the first placement
                 for(int i=0; i<prevPlacements.size(); i++)
-                {
+                { //clear them
                     refreshTile(prevPlacements.get(i));
-                }
+                } //and clear all previous placements
                 prevPlacements.clear();
             }
             for(int i=0; i<placement.length(); i+= 5)
-            {
+            {//place each placement in the board string onto the board
                 makeSinglePlacement(placement.substring(i, i+5));
             }
         }
         else if(placement.length() == 5 && RailroadInk.isTilePlacementWellFormed(placement))
-        {
+        { //placement is a valid single placement string
             if(prevPlacements != null)
-            {//if this is not the first placement, replace the previous placement with an appropriate tile
+            {//if this is not the first placement, clear the previous placement
                 refreshTile(prevPlacements.get(0));
                 prevPlacements.clear();
-            }
+            }//place the placement on the board
             makeSinglePlacement(placement);
         }
         else
-        {
+        { //otherwise, placement is illegal
             textWarning.setText("Bad placement string! Try again.");
         }
     }
 
+    /**
+     * The makePlacementWithRules() method is called when the withRules checkbox
+     * is selected. This applies the placement rules of the game to each placement
+     * by attempting to add the tile to the Board object. If it successfully adds the
+     * Tile, then the placement is legal and the image is shown on the board.
+     *
+     * @param placement A valid placement String
+     */
     void makePlacementWithRules(String placement)
     {
         if(placement.length() > 5)
-        {
+        { //According to the rules, you can only place one tiles at a time
             textWarning.setText("You may only place one tile at a time.");
         }
         else if(placement.length() == 5 && RailroadInk.isTilePlacementWellFormed(placement))
-        {
+        { //A valid placement string
             if(boardData.addTile(placement))
-            {
-                makeSinglePlacement(placement);
+            { //if the tile is successfully added to the board
+                makeSinglePlacement(placement); //paint it on the UI
             }
             else
-            {
+            { //the placement violates the rules of the game
                 textWarning.setText("Illegal placement! Try again.");
             }
         }
         else
-        {
+        { //otherwise, the placement string is invalid
             textWarning.setText("Bad placement string! Try again.");
         }
     }
 
+    /**
+     * This method paints a single tile placement on the board UI.
+     *
+     * @param placement A valid placement string
+     */
     void makeSinglePlacement(String placement)
     {
+        //create a Placement object to access components of placement
         Placement p = new Placement(placement);
         ImageView img;
 
@@ -139,46 +145,55 @@ public class Viewer extends Application {
         textWarning.setText("");
 
         if(prevPlacements == null)
-        {
+        { //if this is the first placement, create the prevPlacements ArrayList
             prevPlacements = new ArrayList<>();
         }
-        prevPlacements.add(new Placement(placement));
+        prevPlacements.add(new Placement(placement)); //add the placement to prevPlacements
 
     }
 
+    /**
+     * This method resets the board by painting blank tiles over all previous placements.
+     */
     private void resetBoard()
     {
         textWarning.setText("");
         if(prevPlacements != null)
         {
             for(Placement p : prevPlacements)
-            {
+            { //refresh each tile that has a previous placement
                 refreshTile(p);
             }
         }
         if(boardData != null)
-        {
+        { //clear data from the Board object
             boardData = new Board();
         }
     }
 
+    /**
+     * This method paints a blank tile over a previous placement on the board.
+     *
+     * @param prevPlacement A previous placement on the board
+     */
     private void refreshTile(Placement prevPlacement)
     {
-        Text id = new Text(prevPlacement.getCoords());
+        Text id = new Text(prevPlacement.getCoords()); //get the coordinates of the previous placement
         StackPane layers = new StackPane();
         ImageView img;
+
         if(boardData.isCenterCoord(prevPlacement.getCoords()))
-        { //replace with center tile
+        { //if the coordinates are in the centre of the board, get the image for a center tile
             img = ImageHandler.getMiscTile("CENTER_TILE");
         }
         else
-        { //replace with blank tile
+        { //otherwise, get the image for a blank tile
             img = ImageHandler.getMiscTile("BLANK_TILE");
         }
 
-        //replace previous placement with blank/center tile
-        layers.getChildren().addAll(img, id);
-        boardProper.add(layers, prevPlacement.getColumn(), prevPlacement.getRowAsInt());
+
+        layers.getChildren().addAll(img, id); //layer the text on top of the tile image
+        boardProper.add(layers, prevPlacement.getColumn(), prevPlacement.getRowAsInt()); //replace previous placement with blank/center tile
     }
 
     /**
@@ -188,15 +203,15 @@ public class Viewer extends Application {
 
         withRules = new CheckBox("Rules");
         withRules.setOnAction(ae ->
-        {
-            textWarning.setText("");
-            resetBoard();
+        { //if with rules is selected
+            textWarning.setText(""); //refresh the warning text
+            resetBoard(); //reset the board
             if(!btnReset.isVisible())
-            {
+            { //if the reset button is not visible, make it visible
                 btnReset.setVisible(true);
             }
             else
-            {
+            { //otherwise it is not needed - make it invisible
                 btnReset.setVisible(false);
             }
         });
@@ -207,14 +222,14 @@ public class Viewer extends Application {
         { //added key press event to textfield because having to press the button is annoying
             KeyCode key = ae.getCode();
             if(key == KeyCode.ENTER)
-            {
+            { //if enter is pressed within the text field, the user is finished typing
                 if(withRules.isSelected())
-                {
+                { //if the rules are being applied
                     makePlacementWithRules(textField.getText());
                     textField.clear();
                 }
                 else
-                {
+                { //otherwise, do an unchecked placement
                     makePlacement(textField.getText());
                     textField.clear();
                 }
@@ -223,12 +238,12 @@ public class Viewer extends Application {
         Button button = new Button("Refresh");
         button.setOnAction(e -> {
             if(withRules.isSelected())
-            {
+            { //if the rules are being applied
                 makePlacementWithRules(textField.getText());
                 textField.clear();
             }
             else
-            {
+            { //otherwise, do an unchecked placement
                 makePlacement(textField.getText());
                 textField.clear();
             }
@@ -241,37 +256,43 @@ public class Viewer extends Application {
         controls.getChildren().add(hb);
     }
 
+    /**
+     * This method makes the sub-UI that contains all the tiles for the user to reference.
+     */
     private void makeTiles()
     {
-        ImageView img;
-        Text title = new Text("Tiles");
-        title.setFont(Font.font("Impact", FontWeight.BOLD, 20));
 
+        ImageView img;
+        Text title = new Text("Tiles"); //the title for the sub-UI
+        title.setFont(Font.font("Impact", FontWeight.BOLD, 20));
         Text tileId;
-        HBox tileColumnContainer = new HBox();
+        HBox tileColumnContainer = new HBox(); //the container that holds the columns of tiles
 
         for(int i=0; i<3; i++)
-        {
-            VBox tileColumn = new VBox();
-            int limit;
-            char type;
+        { //cycle through three times as there are three types of tiles
+
+            VBox tileColumn = new VBox(); //the column for this tile type
+            int limit; //the number of tiles of this type
+            char type; //the type of these tile
             switch(i)
-            {
+            { //select the appropriate type and its number
                 case 0: type = 'A'; limit = 6; break;
                 case 1: type = 'B'; limit = 3; break;
                 default: type = 'S'; limit = 6;
             }
             for(int j=0; j<limit; j++)
-            {
+            { //get the name and image of each file of this type and add it to the column
                 tileId = new Text(type + "" + j);
                 img = ImageHandler.getTileImage(new Tile(type + "" + j));
                 tileColumn.getChildren().addAll(tileId, img);
             }
-            tileColumn.setAlignment(Pos.CENTER);
+
+            //add the column to the column container
             tileColumn.setSpacing(5);
             tileColumnContainer.getChildren().add(tileColumn);
         }
 
+        //clean up the presentation
         tileColumnContainer.setSpacing(10);
         tileContainer.getChildren().addAll(title, tileColumnContainer);
         tileContainer.setAlignment(Pos.CENTER);
@@ -295,7 +316,7 @@ public class Viewer extends Application {
         GridPane eastEdge = new GridPane();
         GridPane southEdge = new GridPane();
         GridPane westEdge = new GridPane();
-        HBox middleContainer = new HBox();
+        HBox middleContainer = new HBox(); //this container holds the center of the board configuration (east, boardProper and west)
         boardProper = new GridPane();
         ImageView tile;
 
@@ -304,15 +325,15 @@ public class Viewer extends Application {
         for(int i=0; i<9; i++)
         {
             if(i==2 || i==6)
-            {
+            { //if this tile is highway exit
                 tile = ImageHandler.getExitImage('N', 'H');
             }
             else if(i==4)
-            {
+            { //if this tile is a railroad exit
                 tile = ImageHandler.getExitImage('N', 'R');
             }
             else
-            {
+            { //otherwise, get a blank edge tile
                 tile = ImageHandler.getMiscTile("EDGE_TILE");
             }
             northEdge.add(tile, i, 0);
@@ -322,15 +343,15 @@ public class Viewer extends Application {
         for(int i=0; i<7; i++)
         {
             if(i==1 || i==5)
-            {
+            { //if this tile is a railroad exit
                 tile = ImageHandler.getExitImage('E', 'R');
             }
             else if(i==3)
-            {
+            { //if this tile is a highway exit
                 tile = ImageHandler.getExitImage('E', 'H');
             }
             else
-            {
+            { //otherwise, get a blank edge tile
                 tile = ImageHandler.getMiscTile("EDGE_TILE");
             }
             eastEdge.add(tile, 0, i);
@@ -341,15 +362,15 @@ public class Viewer extends Application {
         for(int i=0; i<9; i++)
         {
             if(i==2 || i==6)
-            {
+            { //if this tile is a highway exit
                 tile = ImageHandler.getExitImage('S', 'H');
             }
             else if(i==4)
-            {
+            { //if this tile is a railroad exit
                 tile = ImageHandler.getExitImage('S', 'R');
             }
             else
-            {
+            { //otherwise get a blank edge tile
                 tile = ImageHandler.getMiscTile("EDGE_TILE");
             }
             southEdge.add(tile, i, 0);
@@ -359,15 +380,15 @@ public class Viewer extends Application {
         for(int i=0; i<7; i++)
         {
             if(i==1 || i==5)
-            {
+            { //if this tile is a railroad exit
                 tile = ImageHandler.getExitImage('W', 'R');
             }
             else if(i==3)
-            {
+            { //if this tile is a highway exit
                 tile = ImageHandler.getExitImage('W', 'H');
             }
             else
-            {
+            { //otherwise, get a blank edge tile
                 tile = ImageHandler.getMiscTile("EDGE_TILE");
             }
             westEdge.add(tile, 0, i);
@@ -379,6 +400,8 @@ public class Viewer extends Application {
         //add to middle container
         middleContainer.getChildren().addAll(westEdge, boardProper, eastEdge);
         middleContainer.setAlignment(Pos.CENTER);
+
+        //add everything to the board
         board.getChildren().addAll(northEdge, middleContainer, southEdge);
         board.setAlignment(Pos.CENTER);
     }
@@ -403,15 +426,19 @@ public class Viewer extends Application {
                 { //create blank tile
                     tile = ImageHandler.getMiscTile("BLANK_TILE");
                 }
+
+                //build the id from the x and y values
                 StringBuilder id = new StringBuilder();
                 id.append((char)(x + 65));
                 id.append(y);
                 tile.setId(id.toString());
 
+                //layer the text over the image of the tile
                 coordinates = new Text(id.toString());
                 layers = new StackPane();
                 layers.getChildren().addAll(tile, coordinates);
 
+                //add to the board
                 boardProper.add(layers, y, x);
             }
         }
