@@ -1,9 +1,5 @@
 We declare that the work we have submitted for Stage C of this assignment and all stages before it is entirely our own work, with the following documented exceptions:
 
-* The idea of using <...> to make the game run faster came from a discussion with <...> (noted in source code comments)
+* A field in the class ScoreCalculator is referred to as 'Network Values', which was taken from the Official Rulebook of Railroad Ink Deep Blue Edition (Hjalmar Hach & Lorenzo Silva).
 
-* The code in class <...> is based on a solution we found when researching the problem (URL provided in source code comments)
-
-*  ....
-
-Signed: Mary Jones (u2345678), Bob Smith (u3456789), and Sue Black (u0123456)
+Signed: Samuel Brookes (u5380100), Baohong Tan (u6126217), and Thoraya Al-Sabti (u6136358)
