@@ -2,6 +2,7 @@ package comp1110.ass2.gui;
 
 import comp1110.ass2.*;
 import javafx.application.Application;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -11,9 +12,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
@@ -39,6 +39,8 @@ public class Viewer extends Application {
 
     private CheckBox withRules;
     private Board boardData = null;
+    private final HBox boardAndTiles = new HBox();
+    private final VBox tileContainer = new VBox();
     private final VBox board = new VBox();
     private GridPane boardProper;
     private final VBox root = new VBox();
@@ -98,21 +100,9 @@ public class Viewer extends Application {
 
     void makePlacementWithRules(String placement)
     {
-        if(placement.length() > 5 && RailroadInk.isBoardStringWellFormed(placement))
-        { //placement is board
-            boardData = new Board();
-            if(boardData.addBoardString(placement))
-            {
-                for(Map.Entry<String, Tile> tile : boardData.getPlacements().entrySet())
-                {
-                    makeSinglePlacement(tile.getValue().getCoords());
-                }
-            }
-            else
-            {
-                textWarning.setText("Board string contains illegal placements! Try again.");
-            }
-
+        if(placement.length() > 5)
+        {
+            textWarning.setText("You may only place one tile at a time.");
         }
         else if(placement.length() == 5 && RailroadInk.isTilePlacementWellFormed(placement))
         {
@@ -174,6 +164,8 @@ public class Viewer extends Application {
 
     private void refreshTile(Placement prevPlacement)
     {
+        Text id = new Text(prevPlacement.getCoords());
+        StackPane layers = new StackPane();
         ImageView img;
         if(boardData.isCenterCoord(prevPlacement.getCoords()))
         { //replace with center tile
@@ -185,7 +177,8 @@ public class Viewer extends Application {
         }
 
         //replace previous placement with blank/center tile
-        boardProper.add(img, prevPlacement.getColumn(), prevPlacement.getRowAsInt());
+        layers.getChildren().addAll(img, id);
+        boardProper.add(layers, prevPlacement.getColumn(), prevPlacement.getRowAsInt());
     }
 
     /**
@@ -246,6 +239,46 @@ public class Viewer extends Application {
         hb.setLayoutX(130);
         hb.setLayoutY(VIEWER_HEIGHT - 50);
         controls.getChildren().add(hb);
+    }
+
+    private void makeTiles()
+    {
+        ImageView img;
+        Text title = new Text("Tiles");
+        title.setFont(Font.font("Impact", FontWeight.BOLD, 20));
+
+        Text tileId;
+        HBox tileColumnContainer = new HBox();
+
+        for(int i=0; i<3; i++)
+        {
+            VBox tileColumn = new VBox();
+            int limit;
+            char type;
+            switch(i)
+            {
+                case 0: type = 'A'; limit = 6; break;
+                case 1: type = 'B'; limit = 3; break;
+                default: type = 'S'; limit = 6;
+            }
+            for(int j=0; j<limit; j++)
+            {
+                tileId = new Text(type + "" + j);
+                img = ImageHandler.getTileImage(new Tile(type + "" + j));
+                tileColumn.getChildren().addAll(tileId, img);
+            }
+            tileColumn.setAlignment(Pos.CENTER);
+            tileColumn.setSpacing(5);
+            tileColumnContainer.getChildren().add(tileColumn);
+        }
+
+        tileColumnContainer.setSpacing(10);
+        tileContainer.getChildren().addAll(title, tileColumnContainer);
+        tileContainer.setAlignment(Pos.CENTER);
+        tileContainer.setSpacing(10);
+        tileContainer.setPadding(new Insets(5));
+        tileContainer.setBackground(new Background(new BackgroundFill(Color.LAVENDER, null, null)));
+        tileContainer.setBorder(new Border(new BorderStroke(Color.MEDIUMPURPLE, BorderStrokeStyle.SOLID, null, BorderStroke.THIN)));
     }
 
     /**
@@ -355,7 +388,9 @@ public class Viewer extends Application {
      */
     private void makeBoardProper()
     {
+        StackPane layers;
         ImageView tile;
+        Text coordinates;
         for(int y=0; y<7; y++)
         {
             for(int x=0; x<7; x++)
@@ -369,10 +404,15 @@ public class Viewer extends Application {
                     tile = ImageHandler.getMiscTile("BLANK_TILE");
                 }
                 StringBuilder id = new StringBuilder();
-                id.append((char)(y + 65));
-                id.append(x);
+                id.append((char)(x + 65));
+                id.append(y);
                 tile.setId(id.toString());
-                boardProper.add(tile, y, x);
+
+                coordinates = new Text(id.toString());
+                layers = new StackPane();
+                layers.getChildren().addAll(tile, coordinates);
+
+                boardProper.add(layers, y, x);
             }
         }
     }
@@ -384,6 +424,11 @@ public class Viewer extends Application {
 
         boardData = new Board();
         makeBoard();
+        makeTiles();
+        boardAndTiles.getChildren().addAll(board, tileContainer);
+        boardAndTiles.setAlignment(Pos.CENTER);
+        boardAndTiles.setSpacing(10);
+
         makeControls();
         textWarning = new Text();
         textWarning.setFont(Font.font("Impact", FontWeight.BOLD, 20));
@@ -393,7 +438,7 @@ public class Viewer extends Application {
         btnReset.setOnAction(ae -> resetBoard());
 
         root.getChildren().add(btnReset);
-        root.getChildren().add(board);
+        root.getChildren().add(boardAndTiles);
         root.getChildren().add(textWarning);
         root.getChildren().add(controls);
         root.setSpacing(20);

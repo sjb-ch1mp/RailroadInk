@@ -4,7 +4,6 @@ import comp1110.ass2.gui.Viewer;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.transform.Rotate;
-import java.io.File;
 
 /**
  * The ImageHandler class contains static methods that make it easier to
