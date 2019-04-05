@@ -64,10 +64,7 @@ public class Viewer extends Application {
         { //placement is a valid board string
             if(prevPlacements != null)
             { //if this is not the first placement
-                for(int i=0; i<prevPlacements.size(); i++)
-                { //clear them
-                    refreshTile(prevPlacements.get(i));
-                } //and clear all previous placements
+                resetBoard();
                 prevPlacements.clear();
             }
             for(int i=0; i<placement.length(); i+= 5)
@@ -79,7 +76,7 @@ public class Viewer extends Application {
         { //placement is a valid single placement string
             if(prevPlacements != null)
             {//if this is not the first placement, clear the previous placement
-                refreshTile(prevPlacements.get(0));
+                resetBoard();
                 prevPlacements.clear();
             }//place the placement on the board
             makeSinglePlacement(placement);
@@ -200,8 +197,12 @@ public class Viewer extends Application {
      * Create a basic text field for input and a refresh button.
      */
     private void makeControls() {
-
+        Label label1 = new Label("Placement:");
+        Button button = new Button("Refresh");
         withRules = new CheckBox("Rules");
+        textField = new TextField();
+        textField.setPrefWidth(300);
+
         withRules.setOnAction(ae ->
         { //if with rules is selected
             textWarning.setText(""); //refresh the warning text
@@ -209,35 +210,22 @@ public class Viewer extends Application {
             if(!btnReset.isVisible())
             { //if the reset button is not visible, make it visible
                 btnReset.setVisible(true);
+                button.setVisible(false);
             }
             else
             { //otherwise it is not needed - make it invisible
                 btnReset.setVisible(false);
+                button.setVisible(true);
             }
         });
-        Label label1 = new Label("Placement:");
-        textField = new TextField();
-        textField.setPrefWidth(300);
-        textField.setOnKeyPressed(ae ->
-        { //added key press event to textfield because having to press the button is annoying
-            KeyCode key = ae.getCode();
-            if(key == KeyCode.ENTER)
-            { //if enter is pressed within the text field, the user is finished typing
-                if(withRules.isSelected())
-                { //if the rules are being applied
-                    makePlacementWithRules(textField.getText());
-                    textField.clear();
-                }
-                else
-                { //otherwise, do an unchecked placement
-                    makePlacement(textField.getText());
-                    textField.clear();
-                }
-            }
-        });
-        Button button = new Button("Refresh");
+
         button.setOnAction(e -> {
-            if(withRules.isSelected())
+            textWarning.setText(""); //refresh the warning text
+            if(textField.getText().equals(""))
+            {
+                resetBoard();
+            }
+            else if(withRules.isSelected())
             { //if the rules are being applied
                 makePlacementWithRules(textField.getText());
                 textField.clear();
@@ -248,6 +236,16 @@ public class Viewer extends Application {
                 textField.clear();
             }
         });
+
+        textField.setOnKeyPressed(ae ->
+        { //added key press event to textfield because having to press the button is annoying
+            KeyCode key = ae.getCode();
+            if(key == KeyCode.ENTER)
+            { //if enter is pressed within the text field, the user is finished typing
+                button.fire();
+            }
+        });
+
         HBox hb = new HBox();
         hb.getChildren().addAll(label1, textField, button, withRules);
         hb.setSpacing(10);
