@@ -60,16 +60,6 @@ public class Viewer extends Application {
     private VBox dicesUI; //dices and roll button
     private VBox specialUI; //special tiles
     private VBox controlsContainer; //menuUI, dicesUI and specialUI
-    private ImageView D1;
-    private ImageView D2;
-    private ImageView D3;
-    private ImageView D4;
-    private ImageView S1;
-    private ImageView S2;
-    private ImageView S3;
-    private ImageView S4;
-    private ImageView S5;
-    private ImageView S6;
 
     /* LAUNCHER ASSETS */
     private Stage launchStage;
@@ -235,14 +225,14 @@ public class Viewer extends Application {
     {
         Text txtDices = new Text("Dices");
         formatText(txtDices, 20, true, true);
-        D1 = ImageHandler.getTileImage(diceData.getDice("D1"));
+        ImageView D1 = ImageHandler.getTileImage(diceData.getDice("D1"));
         setUpRotateable(D1, "D1");
-        D2 = ImageHandler.getTileImage(diceData.getDice("D2"));
+        ImageView D2 = ImageHandler.getTileImage(diceData.getDice("D2"));
         setUpRotateable(D2, "D2");
         HBox diceRowOne = setUpRow(D1, D2);
-        D3 = ImageHandler.getTileImage(diceData.getDice("D3"));
+        ImageView D3 = ImageHandler.getTileImage(diceData.getDice("D3"));
         setUpRotateable(D3, "D3");
-        D4 = ImageHandler.getTileImage(diceData.getDice("D4"));
+        ImageView D4 = ImageHandler.getTileImage(diceData.getDice("D4"));
         setUpRotateable(D4, "D4");
         HBox diceRowTwo = setUpRow(D3, D4);
         Button btnRoll = new Button("Roll");
