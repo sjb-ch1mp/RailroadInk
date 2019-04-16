@@ -1,4 +1,6 @@
-package comp1110.ass2;
+package comp1110.ass2.gui;
+
+import comp1110.ass2.Tile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,17 +41,9 @@ public class SpecialTiles
      * by one, clock-wise. It does so by calling rotateTile() on each of
      * the tiles in the HashMap.
      */
-    public void rotateTiles()
+    public void rotateTile(String tile)
     {
-        /*
-         * Rotates all tiles in the specialTiles[] array by looping through the array
-         * and calling rotateTile() to update the edge positions. It will then update
-         * the ImageView on the board using the Rotate object on the elements in the imageRef[] array.
-         */
-        for(Map.Entry<String, Tile> sTile : specialTiles.entrySet())
-        {
-            sTile.getValue().rotateTile();
-        }
+        specialTiles.get(tile).rotateTile();
     }
 
     /**

@@ -1,4 +1,8 @@
-package comp1110.ass2;
+package comp1110.ass2.gui;
+
+import comp1110.ass2.Tile;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.VBox;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,6 +17,7 @@ import java.util.Random;
 public class Dices
 {
     private HashMap<String, Tile> dices;
+    private HashMap<String, ImageView> images;
     private int diceCounter; //keeps track of how many dice tiles have been used this turn. Refreshes on rollDice()
 
     public Dices()
@@ -46,19 +51,16 @@ public class Dices
         dices.put("D2", new Tile("A" + rand.nextInt(6)));
         dices.put("D3", new Tile("A" + rand.nextInt(6)));
         dices.put("D4", new Tile("B" + rand.nextInt(3)));
+        images = new HashMap<>(0);
     }
 
     /**
-     * The rotateTiles() method rotates all Tiles in the dices HashMap
-     * by one, clock-wise. It does so by calling rotateTile() on each of
-     * the tiles in the HashMap.
+     * The rotateDice() method rotates the given dice in the dices HashMap
+     * by one, clock-wise. It does so by calling rotateTile() on that dice.
      */
-    public void rotateTiles()
+    public void rotateDice(String dice)
     {
-        for(Map.Entry<String, Tile> dice : dices.entrySet())
-        {
-            dice.getValue().rotateTile();
-        }
+        dices.get(dice).rotateTile();
     }
 
     /**

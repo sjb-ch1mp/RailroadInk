@@ -1,5 +1,6 @@
-package comp1110.ass2;
+package comp1110.ass2.gui;
 
+import comp1110.ass2.Tile;
 import comp1110.ass2.gui.Viewer;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -145,5 +146,6 @@ public class ImageHandler
         img.setFitHeight(IMAGE_DIMENSIONS);
         return img;
     }
+
 
 }

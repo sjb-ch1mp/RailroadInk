@@ -18,11 +18,13 @@ public class Board
     //This hashmap stores the coordinates of the exit tiles as well as which side needs to be which route,
     //e.g. "<A2, NR>" means at coordinate A2, the North side of the tile needs to be a Road.
     private HashMap<String, String> exitCoords;
+    private int roundCounter;
 
     //The fields are public so that they can be freely accessed by the ScoreCalculator
 
     public Board()
     {
+        roundCounter = 1;
         placements = new HashMap<>(0);
 
         //center coordinates
@@ -369,5 +371,20 @@ public class Board
     public HashMap<String, Tile> getPlacements()
     {
         return placements;
+    }
+
+    public boolean iterateRoundCounter()
+    {
+        if(roundCounter < 7)
+        {
+            roundCounter++;
+            return true;
+        }
+        return false;
+    }
+
+    public int getRound()
+    {
+        return roundCounter;
     }
 }
