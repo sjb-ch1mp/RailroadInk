@@ -20,6 +20,7 @@ public class Tile
     private char row; //the row and column of a given placement can be stored when the tile is placed on the board
     private int column; //this is for calculating score
     private boolean used; //this stores whether the tile has been used (dices and special tiles)
+    private boolean selected; //this tracks whether a tile is selected
 
     public Tile(String id)
     {
@@ -29,6 +30,7 @@ public class Tile
         this.orientation = 0;
         this.routeType = constructors.get(id)[0];
         used = false;
+        selected = false;
 
         edges = new char[4];
         edges[0] = constructors.get(id)[1];
@@ -232,5 +234,20 @@ public class Tile
     public String getPlacementString()
     {
         return id + row + column + orientation;
+    }
+
+    public void selectTile()
+    {
+        selected = true;
+    }
+
+    public void deselectTile()
+    {
+        selected = false;
+    }
+
+    public boolean isSelected()
+    {
+        return selected;
     }
 }

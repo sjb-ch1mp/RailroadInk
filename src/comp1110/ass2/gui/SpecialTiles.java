@@ -14,7 +14,8 @@ import java.util.Map;
 public class SpecialTiles
 {
     private HashMap<String, Tile> specialTiles; //tracks the tile data for the S tiles
-    private int specialCounter; //keeps track of how many special tiles have been used this game
+    private int specialCounterGame; //keeps track of how many special tiles have been used this game
+    private int specialCounterRound;
 
     public SpecialTiles()
     {
@@ -33,7 +34,8 @@ public class SpecialTiles
         specialTiles.put("S5", new Tile("S4"));
         specialTiles.put("S6", new Tile("S5"));
 
-        specialCounter = 0;
+        specialCounterGame = 0;
+        specialCounterRound = 0;
     }
 
     /**
@@ -53,12 +55,26 @@ public class SpecialTiles
      * @param sTile (String) The identifier for the special tile being used (S1-S6).
      * @return (Tile) The tile representing the special tile being used.
      */
-    public Tile useSpecialTile(String sTile)
+    public void useSpecialTile(String sTile)
     {
-        //use a special tile
-        specialCounter++;
+        specialCounterGame++;
+        specialCounterRound++;
         specialTiles.get(sTile).useTile();
-        return specialTiles.get(sTile);
+    }
+
+    public int getCounterRound()
+    {
+        return specialCounterRound;
+    }
+
+    public int getCounterGame()
+    {
+        return specialCounterGame;
+    }
+
+    public void resetCounterRound()
+    {
+        specialCounterRound = 0;
     }
 
     /**
@@ -77,8 +93,13 @@ public class SpecialTiles
         return specialTiles.get(sTile);
     }
 
-    public int getSpecialCounter()
+    public void deselectAll()
     {
-        return specialCounter;
+        specialTiles.get("S1").deselectTile();
+        specialTiles.get("S2").deselectTile();
+        specialTiles.get("S3").deselectTile();
+        specialTiles.get("S4").deselectTile();
+        specialTiles.get("S5").deselectTile();
+        specialTiles.get("S6").deselectTile();
     }
 }

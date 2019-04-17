@@ -167,7 +167,8 @@ public class Board
         {
             if(exitTile.getKey().equals(newTile.getCoords()))
             {
-                if(newTile.getEdge(exitTile.getValue().charAt(0)) != exitTile.getValue().charAt(1))
+                if(newTile.getEdge(exitTile.getValue().charAt(0)) != '0' &&
+                        newTile.getEdge(exitTile.getValue().charAt(0)) != exitTile.getValue().charAt(1))
                 {
                     return false;
                 }

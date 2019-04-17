@@ -18,7 +18,6 @@ public class Dices
 {
     private HashMap<String, Tile> dices;
     private HashMap<String, ImageView> images;
-    private int diceCounter; //keeps track of how many dice tiles have been used this turn. Refreshes on rollDice()
 
     public Dices()
     {
@@ -33,8 +32,6 @@ public class Dices
         dices.put("D2", new Tile("A1"));
         dices.put("D3", new Tile("A2"));
         dices.put("D4", new Tile("B0"));
-
-        diceCounter = 0;
     }
 
     /**
@@ -45,7 +42,6 @@ public class Dices
     public void rollDice()
     {
         Random rand = new Random();
-        diceCounter = 0;
         dices = new HashMap<>(0);
         dices.put("D1", new Tile("A" + rand.nextInt(6)));
         dices.put("D2", new Tile("A" + rand.nextInt(6)));
@@ -70,12 +66,10 @@ public class Dices
      * @param dice (String) The identifier for the dice being used (D1, D2, D3 or D4).
      * @return (Tile) The tile representing the dice being used.
      */
-    public Tile useDice(String dice)
+    public void useDice(String dice)
     {
         //return the Tile enum for a dice at the given index
-        diceCounter++;
         dices.get(dice).useTile();
-        return dices.get(dice);
     }
 
     /**
@@ -87,11 +81,6 @@ public class Dices
     public boolean isUsed(String dice)
     {
         return dices.get(dice).isUsed();
-    }
-
-    public int getDiceCounter()
-    {
-        return diceCounter;
     }
 
     public Tile getDice(String dice)
@@ -114,5 +103,13 @@ public class Dices
             diceString.append(dice.getValue().getId());
         }
         return diceString.toString();
+    }
+
+    public void deselectAll()
+    {
+        dices.get("D1").deselectTile();
+        dices.get("D2").deselectTile();
+        dices.get("D3").deselectTile();
+        dices.get("D4").deselectTile();
     }
 }

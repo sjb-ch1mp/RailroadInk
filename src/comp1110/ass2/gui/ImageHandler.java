@@ -2,6 +2,7 @@ package comp1110.ass2.gui;
 
 import comp1110.ass2.Tile;
 import comp1110.ass2.gui.Viewer;
+import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.transform.Rotate;
@@ -51,7 +52,12 @@ public class ImageHandler
             img = rotateImage(img);
         }
 
-        //NOTE FOR LATER: can set up actionHandlers in here too
+        if(tile.isSelected())
+        {
+            ColorAdjust colorAdjust = new ColorAdjust();
+            colorAdjust.setSaturation(0.3);
+            img.setEffect(colorAdjust);
+        }
 
         return img;
     }
