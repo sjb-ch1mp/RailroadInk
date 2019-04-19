@@ -2,7 +2,11 @@ package comp1110.ass2.gui;
 
 
 import comp1110.ass2.Board;
+import comp1110.ass2.PlayerData;
+import comp1110.ass2.ComputerOpponent;
 import comp1110.ass2.Placement;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.geometry.Insets;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
@@ -18,6 +22,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.ImageView;
+import javafx.util.Duration;
+
+import java.util.HashMap;
 
 import static javafx.scene.layout.BorderStroke.MEDIUM;
 
@@ -46,23 +53,19 @@ public class Viewer extends Application {
     private Stage gameStage;
     private static final int GAME_WIDTH = 1024;
     private static final int GAME_HEIGHT = 768;
-    private Text txtPlayer;
     private Text txtRound;
-    private Board playerOneBoardData;
-    private int player;
+    private HashMap<Integer, PlayerData> playerData;
+    private Board boardRef;
+    private Dices diceRef;
+    private SpecialTiles specialRef;
     private char gameMode;
-    private Board opponentBoardData;
-    //private Agent computerOpponent;
-    private Dices diceData;
-    private SpecialTiles sTilesData;
+    private int player;
+    private ComputerOpponent computerOpponent;
     private HBox gameInfo; //player and round
     private VBox boardContainer; //holds full board
     private GridPane boardProper; //actual board
-    private VBox gameContainer; //holds gameInfo, boardContainer and notificationText
-    private VBox menuUI; //main menu and game summary
     private VBox dicesUI; //dices and roll button
     private VBox specialUI; //special tiles
-    private VBox controlsContainer; //menuUI, dicesUI and specialUI
     private String selected; //tracks which tile is selected
     private Placement placement;
     private Text txtNotification;
@@ -110,17 +113,21 @@ public class Viewer extends Application {
         {
             if(btnSinglePlayer.isSelected())
             {
-                launchGameStageOnePlayer();
+                gameMode = 's';
+                player = 1;
+                launchGameStage();
             }
             else if(btnMultiPlayer.isSelected())
             {
-                //launchGameStageTwoPlayer();
-                txtNotification.setText("Multi-player is still under development!");
+                gameMode = 'm';
+                player = 1;
+                launchGameStage();
             }
             else
             { //btnComputer is selected
-                //launchGameStageCompOpponent();
-                txtNotification.setText("Computer opponent is still under development!");
+                gameMode = 'c';
+                player = 1;
+                launchGameStage();
             }
         });
 
@@ -137,59 +144,57 @@ public class Viewer extends Application {
         return launchStage;
     }
 
-    private void quitQuery()
+
+    private void launchGameStage()
     {
-        Stage quitStage = new Stage();
-        quitStage.setTitle("Return to menu");
-        Text txtQuit = new Text("Are you sure you want to quit?");
-        formatText(txtQuit, 20, true, false);
-        Button btnYes = new Button("Yes");
-        formatButton(btnYes);
-        Button btnNo = new Button("No");
-        formatButton(btnNo);
-        btnYes.setOnAction(ae ->
+        //if this is the first launch, initialise playerData
+        if(playerData == null)
         {
-            quitStage.close();
-            gameStage.close();
-            start(new Stage());
-        });
-        btnNo.setOnAction(ae -> quitStage.close());
-        HBox buttons = new HBox();
-        buttons.getChildren().addAll(btnYes, btnNo);
-        formatBox(buttons, Color.LAVENDER, 50, false);
-        VBox root = new VBox();
-        formatBox(root, Color.LAVENDER, 10, false);
-        root.getChildren().addAll(txtQuit, buttons);
+            playerData = new HashMap<>(0);
 
-        quitStage.setResizable(false);
-        quitStage.setScene(new Scene(root, 300, 100));
-        quitStage.show();
-    }
+            if(gameMode == 's')
+            {
+                playerData.put(1, new PlayerData(1, new Board(), new Dices(), new SpecialTiles()));
+                playerData.get(1).diceData.rollDice();
+            }
+            else if(gameMode == 'm')
+            {
+                playerData.put(1, new PlayerData(1, new Board(), new Dices(), new SpecialTiles()));
+                playerData.put(2, new PlayerData(1, new Board(), new Dices(), new SpecialTiles()));
+                playerData.get(1).diceData.rollDice();
+                playerData.get(2).diceData.copyPlayerOneData(playerData.get(1).diceData);
+            }
+            else
+            {
+                //gameMode = 'c'
+                playerData.put(1, new PlayerData(1, new Board(), new Dices(), new SpecialTiles()));
+                playerData.get(1).diceData.rollDice();
+                computerOpponent = new ComputerOpponent(new PlayerData(2, new Board(), new Dices(), new SpecialTiles()));
+                computerOpponent.playerData.diceData.copyPlayerOneData(playerData.get(1).diceData);
+            }
+        }
 
-    private void launchGameStageOnePlayer()
-    {
-        gameMode = 's';
-        player = 1;
+        //set up local reference variables for this launch
+        boardRef = playerData.get(player).boardData;
+        diceRef = playerData.get(player).diceData;
+        specialRef = playerData.get(player).specialData;
 
         //set up gameContainer
-        playerOneBoardData = new Board();
         boardProper = new GridPane();
         setUpGameInfo();
-        setUpBoard(playerOneBoardData);
+        setUpBoard();
         txtNotification = new Text();
         formatText(txtNotification, 30, true, false);
-        gameContainer = new VBox();
+        VBox gameContainer = new VBox();
         formatBox(gameContainer, Color.LIGHTBLUE, 10, false);
         gameContainer.getChildren().addAll(gameInfo, boardContainer, txtNotification);
 
         //set up controlsContainer
-        diceData = new Dices();
         dicesUI = new VBox();
         setUpDiceUI();
         specialUI = new VBox();
-        sTilesData = new SpecialTiles();
         setUpSpecialUI();
-        controlsContainer = new VBox();
+        VBox controlsContainer = new VBox();
         formatBox(controlsContainer, Color.LIGHTBLUE, 10, false);
         Button btnMenu = new Button("Main Menu");
         formatButton(btnMenu);
@@ -215,21 +220,41 @@ public class Viewer extends Application {
         gameStage.show();
     }
 
-    private void launchGameStageTwoPlayer()
+    private void quitQuery()
     {
-        gameMode = 'm';
-    }
+        Stage quitStage = new Stage();
+        quitStage.setTitle("Return to menu");
+        Text txtQuit = new Text("Are you sure you want to quit?");
+        formatText(txtQuit, 20, true, false);
+        Button btnYes = new Button("Yes");
+        formatButton(btnYes);
+        Button btnNo = new Button("No");
+        formatButton(btnNo);
+        btnYes.setOnAction(ae ->
+        {
+            playerData = null;
+            quitStage.close();
+            gameStage.close();
+            start(new Stage());
+        });
+        btnNo.setOnAction(ae -> quitStage.close());
+        HBox buttons = new HBox();
+        buttons.getChildren().addAll(btnYes, btnNo);
+        formatBox(buttons, Color.LAVENDER, 50, false);
+        VBox root = new VBox();
+        formatBox(root, Color.LAVENDER, 10, false);
+        root.getChildren().addAll(txtQuit, buttons);
 
-    private void launchGameStageCompOpponent()
-    {
-        gameMode = 'c';
+        quitStage.setResizable(false);
+        quitStage.setScene(new Scene(root, 300, 100));
+        quitStage.show();
     }
 
     private void setUpGameInfo()
     {
-        txtPlayer = new Text("~ Player 1 ~");
+        Text txtPlayer = new Text("~ Player " + player + " ~");
         formatText(txtPlayer, 30, true, false);
-        txtRound = new Text("~ Round 1 ~");
+        txtRound = new Text("~ Round " + boardRef.getRound() + " ~");
         formatText(txtRound, 30, true, false);
         gameInfo = new HBox();
         formatBox(gameInfo, Color.LIGHTBLUE, 150, false);
@@ -241,62 +266,148 @@ public class Viewer extends Application {
         Text txtDices = new Text("Dices");
         formatText(txtDices, 20, true, true);
 
-        ImageView D1 = (diceData.isUsed("D1"))?
+        ImageView D1 = (diceRef.isUsed("D1"))?
                 ImageHandler.getMiscTile("invalid"):
-                ImageHandler.getTileImage(diceData.getDice("D1"));
+                ImageHandler.getTileImage(diceRef.getDice("D1"));
         D1.setId("D1");
         setUpSelectAndRotate(D1);
 
-        ImageView D2 = (diceData.isUsed("D2"))?
+        ImageView D2 = (diceRef.isUsed("D2"))?
                 ImageHandler.getMiscTile("invalid"):
-                ImageHandler.getTileImage(diceData.getDice("D2"));
+                ImageHandler.getTileImage(diceRef.getDice("D2"));
         D2.setId("D2");
         setUpSelectAndRotate(D2);
 
         HBox diceRowOne = setUpRow(D1, D2);
 
-        ImageView D3 = (diceData.isUsed("D3"))?
+        ImageView D3 = (diceRef.isUsed("D3"))?
                 ImageHandler.getMiscTile("invalid"):
-                ImageHandler.getTileImage(diceData.getDice("D3"));
+                ImageHandler.getTileImage(diceRef.getDice("D3"));
         D3.setId("D3");
         setUpSelectAndRotate(D3);
 
-        ImageView D4 = (diceData.isUsed("D4"))?
+        ImageView D4 = (diceRef.isUsed("D4"))?
                 ImageHandler.getMiscTile("invalid"):
-                ImageHandler.getTileImage(diceData.getDice("D4"));
+                ImageHandler.getTileImage(diceRef.getDice("D4"));
         D4.setId("D4");
         setUpSelectAndRotate(D4);
 
         HBox diceRowTwo = setUpRow(D3, D4);
 
-        Button btnRoll = new Button("Roll");
+        Button btnRoll;
+        if(gameMode == 's' || gameMode == 'c')
+        {
+            btnRoll = new Button((boardRef.getRound() == 7)?"End Game":"Roll");
+        }
+        else
+        {
+            if(player == 1)
+            {
+                btnRoll = new Button("End Turn");
+            }
+            else
+            {
+                btnRoll = new Button((boardRef.getRound() == 7)?"End Game":"End Turn");
+            }
+        }
+
         formatButton(btnRoll);
         btnRoll.setOnAction(ae ->
         {
             txtNotification.setText("");
-            sTilesData.resetCounterRound();
 
-            if(playerOneBoardData.iterateRoundCounter())
-            {
-                //check that round conditions have been met: are there any legal moves available?
-                if(selected != null && selected.charAt(0) == 'S')
+            if(gameMode == 'm')
+            { //two player
+                if(!boardRef.legalMovesRemaining(diceRef))
                 {
-                    sTilesData.deselectAll();
-                    setUpSpecialUI();
+                    if(player == 1)
+                    {
+                        boardRef.iterateRoundCounter();
+                        specialRef.resetCounterRound();
+
+                        player = 2;
+                        gameStage.close();
+                        launchGameStage();
+                        txtRound.setText("~ Round " + boardRef.getRound() + " ~");
+
+                        if(boardRef.getRound() == 7)
+                        {
+                            btnRoll.setText("End Game");
+                        }
+                    }
+                    else
+                    { //player = 2
+                        if(btnRoll.getText().equals("End Game"))
+                        {// this is round 7
+                            //Calculate scores and end game
+                        }
+                        else
+                        {
+                            boardRef.iterateRoundCounter();
+                            specialRef.resetCounterRound();
+
+                            player = 1;
+                            gameStage.close();
+                            launchGameStage();
+                            diceRef.rollDice();
+                            playerData.get(2).diceData.copyPlayerOneData(diceRef);
+
+                            setUpDiceUI();
+                            txtRound.setText("~ Round " + boardRef.getRound() + " ~");
+                        }
+
+                    }
                 }
                 else
                 {
-                    diceData.deselectAll();
+                    txtNotification.setText("You must place all of the dice!");
                 }
-                selected = null;
-
-                diceData.rollDice();
-                txtRound.setText("~ Round " + playerOneBoardData.getRound() + " ~");
-                setUpDiceUI();
             }
             else
-            {
-                //calculate scores and finish game
+            { //gameMode == 'c' or 's'
+                if(!boardRef.legalMovesRemaining(diceRef))
+                { //if there are no more legal moves this round
+                    if(btnRoll.getText().equals("End Game"))
+                    { //this is round 7
+                        //calculate score and end game
+                        if(gameMode == 's')
+                        {
+                            System.out.println(playerData.get(1).boardData.calculateScore());
+                        }
+                        else
+                        { //gameMode = 'c'
+
+                        }
+                    }
+                    else
+                    {
+                        if(gameMode == 'c')
+                        {
+                            computerOpponent.haveTurn();
+                        }
+
+                        boardRef.iterateRoundCounter();
+                        specialRef.resetCounterRound();
+                        diceRef.rollDice();
+
+                        if(gameMode == 'c')
+                        {
+                            computerOpponent.playerData.diceData.copyPlayerOneData(diceRef);
+                        }
+
+                        setUpDiceUI();
+                        txtRound.setText("~ Round " + boardRef.getRound() + " ~");
+
+                        if(boardRef.getRound() == 7)
+                        {
+                            btnRoll.setText("End Game");
+                        }
+                    }
+                }
+                else
+                {
+                    txtNotification.setText("You must place all of the dice!");
+                }
             }
         });
         formatBox(dicesUI, Color.LAVENDER, 10, true);
@@ -308,43 +419,43 @@ public class Viewer extends Application {
     {
         Text txtSpecials = new Text("Special Tiles");
         formatText(txtSpecials, 20, true, true);
-        ImageView S1 = (sTilesData.isUsed("S1"))?
+        ImageView S1 = (specialRef.isUsed("S1"))?
             ImageHandler.getMiscTile("invalid"):
-            ImageHandler.getTileImage(sTilesData.getSpecialTile("S1"));
+            ImageHandler.getTileImage(specialRef.getSpecialTile("S1"));
         S1.setId("S1");
         setUpSelectAndRotate(S1);
 
-        ImageView S2 = (sTilesData.isUsed("S2"))?
+        ImageView S2 = (specialRef.isUsed("S2"))?
                 ImageHandler.getMiscTile("invalid"):
-                ImageHandler.getTileImage(sTilesData.getSpecialTile("S2"));
+                ImageHandler.getTileImage(specialRef.getSpecialTile("S2"));
         S2.setId("S2");
         setUpSelectAndRotate(S2);
 
         HBox specialRowOne = setUpRow(S1, S2);
 
-        ImageView S3 = (sTilesData.isUsed("S3"))?
+        ImageView S3 = (specialRef.isUsed("S3"))?
                 ImageHandler.getMiscTile("invalid"):
-                ImageHandler.getTileImage(sTilesData.getSpecialTile("S3"));
+                ImageHandler.getTileImage(specialRef.getSpecialTile("S3"));
         S3.setId("S3");
         setUpSelectAndRotate(S3);
 
-        ImageView S4 = (sTilesData.isUsed("S4"))?
+        ImageView S4 = (specialRef.isUsed("S4"))?
                 ImageHandler.getMiscTile("invalid"):
-                ImageHandler.getTileImage(sTilesData.getSpecialTile("S4"));
+                ImageHandler.getTileImage(specialRef.getSpecialTile("S4"));
         S4.setId("S4");
         setUpSelectAndRotate(S4);
 
         HBox specialRowTwo = setUpRow(S3, S4);
 
-        ImageView S5 = (sTilesData.isUsed("S5"))?
+        ImageView S5 = (specialRef.isUsed("S5"))?
                 ImageHandler.getMiscTile("invalid"):
-                ImageHandler.getTileImage(sTilesData.getSpecialTile("S5"));
+                ImageHandler.getTileImage(specialRef.getSpecialTile("S5"));
         S5.setId("S5");
         setUpSelectAndRotate(S5);
 
-        ImageView S6 = (sTilesData.isUsed("S6"))?
+        ImageView S6 = (specialRef.isUsed("S6"))?
                 ImageHandler.getMiscTile("invalid"):
-                ImageHandler.getTileImage(sTilesData.getSpecialTile("S6"));
+                ImageHandler.getTileImage(specialRef.getSpecialTile("S6"));
         S6.setId("S6");
         setUpSelectAndRotate(S6);
 
@@ -368,12 +479,12 @@ public class Viewer extends Application {
             {
                 if(selected.charAt(0) == 'D')
                 {
-                    diceData.getDice(selected).deselectTile();
+                    diceRef.getDice(selected).deselectTile();
                     setUpDiceUI();
                 }
                 else
                 {
-                    sTilesData.getSpecialTile(selected).deselectTile();
+                    specialRef.getSpecialTile(selected).deselectTile();
                     setUpSpecialUI();
                 }
             }
@@ -385,14 +496,14 @@ public class Viewer extends Application {
                 //highlight selected tile
                 if(tile.getId().charAt(0) == 'D')
                 {
-                    diceData.getDice(selected).selectTile();
-                    placement = new Placement(diceData.getDice(tile.getId()));
+                    diceRef.getDice(selected).selectTile();
+                    placement = new Placement(diceRef.getDice(tile.getId()));
                     setUpDiceUI();
                 }
                 else
                 {
-                    sTilesData.getSpecialTile(tile.getId()).selectTile();
-                    placement = new Placement(sTilesData.getSpecialTile(tile.getId()));
+                    specialRef.getSpecialTile(tile.getId()).selectTile();
+                    placement = new Placement(specialRef.getSpecialTile(tile.getId()));
                     setUpSpecialUI();
                 }
             }
@@ -400,12 +511,12 @@ public class Viewer extends Application {
             {
                 if(tile.getId().charAt(0) == 'D')
                 { //tile is a dice
-                    diceData.rotateDice(tile.getId());
+                    diceRef.rotateDice(tile.getId());
                     setUpDiceUI();
                 }
                 else
                 { //tile is special
-                    sTilesData.rotateTile(tile.getId());
+                    specialRef.rotateTile(tile.getId());
                     setUpSpecialUI();
                 }
             }
@@ -422,22 +533,12 @@ public class Viewer extends Application {
             {
                 placement.updateCoordinates(tile.getId());
 
-                Board board;
-                if(gameMode == 'c')
-                {
-                    board = playerOneBoardData;
-                }
-                else
-                {
-                    board = (player == 1)?playerOneBoardData:opponentBoardData;
-                }
-
                 if(selected.charAt(0) == 'D')
                 { //dice is selected
-                    if(board.addTile(placement.toString()))
+                    if(boardRef.addTile(placement.toString()))
                     {
-                        makeBoardProper(board);
-                        diceData.useDice(selected);
+                        makeBoardProper();
+                        diceRef.useDice(selected);
                         setUpDiceUI();
                         selected = null;
                         placement = null;
@@ -449,12 +550,12 @@ public class Viewer extends Application {
                 }
                 else
                 {
-                    if(sTilesData.getCounterGame() < 3 && sTilesData.getCounterRound() == 0)
+                    if(specialRef.getCounterGame() < 3 && specialRef.getCounterRound() == 0)
                     {
-                        if(board.addTile(placement.toString()))
+                        if(boardRef.addTile(placement.toString()))
                         {
-                            makeBoardProper(board);
-                            sTilesData.useSpecialTile(selected);
+                            makeBoardProper();
+                            specialRef.useSpecialTile(selected);
                             setUpSpecialUI();
                             selected = null;
                             placement = null;
@@ -466,7 +567,7 @@ public class Viewer extends Application {
                     }
                     else
                     {
-                        txtNotification.setText((sTilesData.getCounterRound() == 1)?
+                        txtNotification.setText((specialRef.getCounterRound() == 1)?
                                 "You can only use 1 special tile per round!":
                                 "You can only use 3 special tiles per game!");
                     }
@@ -530,7 +631,7 @@ public class Viewer extends Application {
         button.setFont(Font.font("Garamond", FontWeight.BOLD, 14));
     }
 
-    private void setUpBoard(Board boardData)
+    private void setUpBoard()
     {
         GridPane northEdge = new GridPane();
         GridPane eastEdge = new GridPane();
@@ -614,7 +715,7 @@ public class Viewer extends Application {
         }
 
         //make boardProper
-        makeBoardProper(boardData);
+        makeBoardProper();
 
         //add to middle container
         middleContainer.getChildren().addAll(westEdge, boardProper, eastEdge);
@@ -626,7 +727,7 @@ public class Viewer extends Application {
         boardContainer.setAlignment(Pos.CENTER);
     }
 
-     private void makeBoardProper(Board boardData)
+     private void makeBoardProper()
      {
          ImageView tile;
          for(int y=0; y<7; y++)
@@ -638,9 +739,9 @@ public class Viewer extends Application {
                  id.append((char)(y + 65));
                  id.append(x);
 
-                 if(boardData.getPlacements().containsKey(id.toString()))
+                 if(boardRef.getPlacements().containsKey(id.toString()))
                  { //there is a placement here
-                    tile = ImageHandler.getTileImage(boardData.getTile(id.toString()));
+                    tile = ImageHandler.getTileImage(boardRef.getTile(id.toString()));
                  }
                  else
                  {
@@ -661,7 +762,6 @@ public class Viewer extends Application {
              }
          }
      }
-
 
 
     /* ===========================================

@@ -105,6 +105,18 @@ public class Dices
         return diceString.toString();
     }
 
+    public void copyPlayerOneData(Dices playerOneDiceData)
+    {
+        String diceId;
+        for(int i=1; i<=4; i++)
+        {
+            diceId = "D" + i;
+            Tile dice = new Tile(playerOneDiceData.getDice(diceId).getId());
+            dice.updateOrientation(playerOneDiceData.getDice(diceId).getOrientation());
+            dices.put(diceId, dice);
+        }
+    }
+
     public void deselectAll()
     {
         dices.get("D1").deselectTile();

@@ -1,5 +1,7 @@
 package comp1110.ass2;
 
+import comp1110.ass2.gui.Dices;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -259,7 +261,7 @@ public class Board
      * @param edge (char) The edge of the Tile being placed.
      * @return The edge opposite to the edge parameter (char)
      */
-    private char getOppositeEdge(char edge)
+    public char getOppositeEdge(char edge)
     {
         switch(edge)
         {
@@ -278,7 +280,7 @@ public class Board
      * @param newTile (Tile) The tile being placed.
      * @return The coordinates of the adjacent tile at the given edge (String.
      */
-    private String getAdjCoords(char edge, Tile newTile)
+    public String getAdjCoords(char edge, Tile newTile)
     {
         StringBuilder chkCoords = new StringBuilder();
         if(edge == 'N')
@@ -369,23 +371,71 @@ public class Board
         return false;
     }
 
+    public boolean isExitCoord(String coord)
+    {
+        return exitCoords.containsKey(coord);
+    }
+
+    public String getExitType(String coord)
+    {
+        return exitCoords.get(coord);
+    }
+
     public HashMap<String, Tile> getPlacements()
     {
         return placements;
     }
 
-    public boolean iterateRoundCounter()
+    public void iterateRoundCounter()
     {
-        if(roundCounter < 7)
-        {
-            roundCounter++;
-            return true;
-        }
-        return false;
+        roundCounter++;
     }
 
     public int getRound()
     {
         return roundCounter;
+    }
+
+    public boolean legalMovesRemaining(Dices diceData)
+    {
+        //set up test board
+        Board testBoard = new Board();
+        for(Map.Entry<String, Tile> mapEntry : placements.entrySet())
+        {
+            testBoard.addTile(mapEntry.getValue().getPlacementString());
+        }
+
+        for(int i=1; i<=4; i++)
+        {
+            String diceID = "D" + i;
+            if(!diceData.getDice(diceID).isUsed())
+            {
+                Tile dice = new Tile(diceData.getDice(diceID).getId());
+                //for all orientations - if testBoard.addTile() returns true, there is a legal placement remaining
+                for(int j=0; j<8; j++)
+                {
+                    dice.updateOrientation(j);
+                    for(char y='A'; y<='G'; y++)
+                    {
+                        for(int x=0; x<7; x++)
+                        {
+                            dice.addCoordinates(y + "" + x);
+                            if(testBoard.addTile(dice.getPlacementString()))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public int calculateScore()
+    {
+        ScoreCalculator scoreCalculator = new ScoreCalculator(this);
+
+        return scoreCalculator.getScore();
     }
 }
