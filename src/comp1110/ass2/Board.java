@@ -86,64 +86,72 @@ public class Board
         { //if there are no ILLEGAL connections
 
             //check for a legal edge connection
+            int legalConnection = 0;
             if(exitCoords.containsKey(newTile.getCoords()))
             { //tile has been placed on an exit tile
+                if(newTile.getEdge(exitCoords.get(newTile.getCoords()).charAt(0)) == exitCoords.get(newTile.getCoords()).charAt(1))
+                {
+                    legalConnection++;
+                }
+            }
+
+            String adjCoords;
+            if(newTile.getRow() > 'A')
+            { //check north
+                adjCoords = getAdjCoords('N', newTile);
+                if(placements.containsKey(adjCoords))
+                {
+                    if(newTile.getEdge('N') != '0' &&
+                            placements.get(adjCoords).getEdge(getOppositeEdge('N')) != '0' &&
+                            newTile.getEdge('N') == placements.get(adjCoords).getEdge(getOppositeEdge('N')))
+                    {
+                        legalConnection++;
+                    }
+                }
+            }
+            if(newTile.getColumn() < 6)
+            { //check east
+                adjCoords = getAdjCoords('E', newTile);
+                if(placements.containsKey(adjCoords))
+                {
+                    if(newTile.getEdge('E') != '0' &&
+                            placements.get(adjCoords).getEdge(getOppositeEdge('E')) != '0' &&
+                            newTile.getEdge('E') == placements.get(adjCoords).getEdge(getOppositeEdge('E')))
+                    {
+                        legalConnection++;
+                    }
+                }
+            }
+            if(newTile.getRow() < 'G')
+            { //check south
+                adjCoords = getAdjCoords('S', newTile);
+                if(placements.containsKey(adjCoords))
+                {
+                    if(newTile.getEdge('S') != '0' &&
+                            placements.get(adjCoords).getEdge(getOppositeEdge('S')) != '0' &&
+                            newTile.getEdge('S') == placements.get(adjCoords).getEdge(getOppositeEdge('S')))
+                    {
+                        legalConnection++;
+                    }
+                }
+            }
+            if(newTile.getColumn() > 0)
+            { //check west
+                adjCoords = getAdjCoords('W', newTile);
+                if(placements.containsKey(adjCoords))
+                {
+                    if(newTile.getEdge('W') != '0' &&
+                            placements.get(adjCoords).getEdge(getOppositeEdge('W')) != '0' &&
+                            newTile.getEdge('W') == placements.get(adjCoords).getEdge(getOppositeEdge('W')))
+                    {
+                        legalConnection++;
+                    }
+                }
+            }
+            if(legalConnection > 0)
+            { //there is at least one legal connection to an adjacent tile
                 placements.put(newTile.getCoords(), newTile);
                 return true;
-            }
-            else
-            { //tile has been placed elsewhere - check for at least one legal connection with adjacent tiles
-                int legalConnection = 0;
-                String adjCoords;
-                if(newTile.getRow() > 'A')
-                { //check north
-                    adjCoords = getAdjCoords('N', newTile);
-                    if(placements.containsKey(adjCoords))
-                    {
-                        if(newTile.getEdge('N') == placements.get(adjCoords).getEdge(getOppositeEdge('N')))
-                        {
-                            legalConnection++;
-                        }
-                    }
-                }
-                if(newTile.getColumn() < 7)
-                { //check east
-                    adjCoords = getAdjCoords('E', newTile);
-                    if(placements.containsKey(adjCoords))
-                    {
-                        if(newTile.getEdge('E') == placements.get(adjCoords).getEdge(getOppositeEdge('E')))
-                        {
-                            legalConnection++;
-                        }
-                    }
-                }
-                if(newTile.getRow() < 'G')
-                { //check south
-                    adjCoords = getAdjCoords('S', newTile);
-                    if(placements.containsKey(adjCoords))
-                    {
-                        if(newTile.getEdge('S') == placements.get(adjCoords).getEdge(getOppositeEdge('S')))
-                        {
-                            legalConnection++;
-                        }
-                    }
-                }
-                if(newTile.getColumn() > 0)
-                { //check west
-                    adjCoords = getAdjCoords('W', newTile);
-                    if(placements.containsKey(adjCoords))
-                    {
-                        if(newTile.getEdge('W') == placements.get(adjCoords).getEdge(getOppositeEdge('W')))
-                        {
-                            legalConnection++;
-                        }
-                    }
-                }
-                if(legalConnection > 0)
-                { //there is at least one legal connection to an adjacent tile
-                    placements.put(newTile.getCoords(), newTile);
-                    return true;
-                }
             }
         }
 
@@ -376,7 +384,7 @@ public class Board
         return exitCoords.containsKey(coord);
     }
 
-    public String getExitType(String coord)
+    public String getExit(String coord)
     {
         return exitCoords.get(coord);
     }
@@ -435,7 +443,11 @@ public class Board
     public int calculateScore()
     {
         ScoreCalculator scoreCalculator = new ScoreCalculator(this);
-
         return scoreCalculator.getScore();
+    }
+
+    public HashMap<String, String> getExitCoords()
+    {
+        return exitCoords;
     }
 }

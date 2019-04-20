@@ -23,27 +23,31 @@ public class ScoreCalculator
     private int score;
     private Board board;
     private ArrayList<ArrayList<Tile>> routes;
+    private int longestHighway;
+    private int longestRailroad;
+    private int centerScore;
+    private int networkScore;
+    private int errors;
 
     public ScoreCalculator(Board board)
     {
+        networkValues = new HashMap<>(0);
+        for(int i=2; i<12; i++)
+        {
+            networkValues.put(i, 4*(i-1));
+        }
+        networkValues.put(12, 45);
+
         this.board = board;
         routes = compileRoutes();
-        score = calculateScore();
-        //enter values for the network values
-    }
 
-    private int calculateScore()
-    {
-        int score = 0;
-        score += countCenterSquares();
-        score += calculateNetworkScore();
-        score -= countErrors();
+        centerScore = countCenterSquares();
+        errors = countErrors();
+        networkScore = calculateNetworkScore();
+        longestHighway = calculateLongestRoute('H');
+        longestRailroad = calculateLongestRoute('R');
 
-        int longestHighway = calculateLongestRoute('H');
-        int longestRailroad = calculateLongestRoute('R');
-        score += (longestHighway > longestRailroad)?longestHighway:longestRailroad;
-
-        return score;
+        score = (centerScore + networkScore + longestHighway + longestRailroad) - errors;
     }
 
     private int countCenterSquares()
@@ -58,6 +62,7 @@ public class ScoreCalculator
                 centerSquares++;
             }
         }
+
         return centerSquares;
     }
 
@@ -177,14 +182,17 @@ public class ScoreCalculator
             {
                 if(board.isExitCoord(tile.getCoords()))
                 {
-                    String exitType = board.getExitType(tile.getCoords());
-                    if(tile.getEdge(exitType.charAt(0)) == exitType.charAt(1))
-                    {
+                    if(tile.getEdge(board.getExit(tile.getCoords()).charAt(0)) ==
+                        board.getExitCoords().get(tile.getCoords()).charAt(1))
+                    { //this is a valid connection to an exit
                         exit++;
                     }
                 }
             }
-            networkScore += networkValues.get(exit);
+            if(exit > 1)
+            {
+                networkScore += networkValues.get(exit);
+            }
         }
 
         return networkScore;
@@ -203,18 +211,366 @@ public class ScoreCalculator
         * In this way, hopefully all Tiles associated with a given route are stored in a single ArrayList<Tile>, and all
         * routes are stored in an overarching routes ArrayList
         * */
-        return new ArrayList<>(0);
+        ArrayList<ArrayList<Tile>> routes = new ArrayList<>(0);
+        ArrayList<String> usedExits = new ArrayList<>(0);
+
+        for(Map.Entry<String, String> mapEntry : board.getExitCoords().entrySet())
+        {
+            String exit = mapEntry.getKey();
+
+            if(board.getPlacements().containsKey(exit) &&
+                !usedExits.contains(exit))
+            { //exit tile is part of a route that has not been evaluated
+
+                ArrayList<Tile> route;
+
+                //check if start point is valid exit connection
+                if(board.getPlacements().get(exit).getEdge(mapEntry.getValue().charAt(0)) ==
+                    mapEntry.getValue().charAt(1))
+                { //exit connector == edge of tile
+                    route = getRoute(exit);
+
+                    //add evaluated exits to usedExits
+                    for(Tile t : route)
+                    {
+                        if(board.isExitCoord(t.getCoords()))
+                        {
+                            usedExits.add(t.getCoords());
+                        }
+                    }
+
+                    routes.add(route);
+                }
+            }
+
+        }
+
+        return routes;
+    }
+
+    private ArrayList<Tile> getRoute(String startCoord)
+    {
+        ArrayList<Tile> route = new ArrayList<>(0);
+        ArrayList<String> evaluated = new ArrayList<>(0);
+        ArrayList<RouteNode> unevaluated = new ArrayList<>(0);
+
+        unevaluated.add(new RouteNode(board.getExit(startCoord).charAt(0),
+                board.getPlacements().get(startCoord)));
+
+        while(unevaluated.size() > 0)
+        {
+            RouteNode routeNode = unevaluated.get(unevaluated.size() - 1);
+            //add all legally connecting adjacent routeNodes to unevaluated
+            if(routeNode.data.getRow() > 'A')
+            { //check North
+                if(routeNode.isValidRouteConnection('N', evaluated))
+                {
+                    unevaluated.add(new RouteNode(board.getOppositeEdge('N'),
+                            board.getPlacements().get(board.getAdjCoords('N',
+                                    board.getTile(routeNode.data.getCoords())))));
+                }
+            }
+            if(routeNode.data.getRow() < 'G')
+            { //check South
+                if(routeNode.isValidRouteConnection('S', evaluated))
+                {
+                    unevaluated.add(new RouteNode(board.getOppositeEdge('S'),
+                            board.getPlacements().get(board.getAdjCoords('S',
+                                    board.getTile(routeNode.data.getCoords())))));
+                }
+            }
+            if(routeNode.data.getColumn() > 0)
+            { //check West
+                if(routeNode.isValidRouteConnection('W', evaluated))
+                {
+                    unevaluated.add(new RouteNode(board.getOppositeEdge('W'),
+                            board.getPlacements().get(board.getAdjCoords('W',
+                                    board.getTile(routeNode.data.getCoords())))));
+                }
+            }
+            if(routeNode.data.getColumn() < 6)
+            { //check East
+                if(routeNode.isValidRouteConnection('E', evaluated))
+                {
+                    unevaluated.add(new RouteNode(board.getOppositeEdge('E'),
+                            board.getPlacements().get(board.getAdjCoords('E',
+                                    board.getTile(routeNode.data.getCoords())))));
+                }
+            }
+
+            //add current routeNode to evaluated
+            evaluated.add(routeNode.data.getCoords());
+
+            //remove current routeNode from unevaluated
+            unevaluated.remove(routeNode);
+
+            //add Tile from routeNode to route
+            route.add(routeNode.data);
+        }
+
+        return route;
     }
 
     private int calculateLongestRoute(char type)
     {
         //put type (either 'R' or 'H') into the conditional statement that checks for a connection between tiles.
         //this will ensure that either the longest Railway is calculated, or the longest Highway
-        return 1;
+        int max = Integer.MIN_VALUE;
+
+        for(ArrayList<Tile> route : routes)
+        {
+            int longestStretch = getLongestStretch(route, type);
+            if(max < longestStretch)
+            {
+                max = longestStretch;
+            }
+        }
+
+        return max;
+    }
+
+    private int getLongestStretch(ArrayList<Tile> route, char type)
+    {
+        ArrayList<Integer> stretches = new ArrayList<>(0);
+        ArrayList<String> evaluated = new ArrayList<>(0);
+        ArrayList<LengthNode> unevaluated = new ArrayList<>(0);
+
+        //get starting coordinates (the first exit)
+        String startCoords = "";
+        for(Tile tile : route)
+        {
+            if(board.isExitCoord(tile.getCoords()))
+            {
+                startCoords = tile.getCoords();
+                break;
+            }
+        }
+
+        unevaluated.add(new LengthNode(0, type, board.getTile(startCoords)));
+
+        while(unevaluated.size() > 0)
+        {
+            LengthNode lengthNode = unevaluated.get(unevaluated.size() - 1);
+
+            if(lengthNode.data.getRow() > 'A')
+            { //check North
+                lengthNode.addIfValid('N', evaluated, unevaluated);
+            }
+
+            if(lengthNode.data.getRow() < 'G')
+            { //check South
+                lengthNode.addIfValid('S', evaluated, unevaluated);
+            }
+
+            if(lengthNode.data.getColumn() > 0)
+            { //check West
+                lengthNode.addIfValid('W', evaluated, unevaluated);
+            }
+
+            if(lengthNode.data.getColumn() < 6)
+            { //check East
+                lengthNode.addIfValid('E', evaluated, unevaluated);
+            }
+
+            //add current node to evaluated
+            evaluated.add(lengthNode.data.getCoords());
+
+            //remove current node from unevaluated
+            unevaluated.remove(lengthNode);
+
+            //add cumulative total to stretches
+            stretches.add(lengthNode.cumulativeTotal);
+        }
+
+        //get the largest cumulative total after all nodes have been evaluated
+        int max = Integer.MIN_VALUE;
+        for(Integer stretch : stretches)
+        {
+            if(max < stretch)
+            {
+                max = stretch;
+            }
+        }
+
+        return max;
     }
 
     public int getScore()
     {
+        /* ============================= debug*/System.out.println("Network Score: " + networkScore);
+        /* ============================= debug*/System.out.println("Center Score: " + centerScore);
+        /* ============================= debug*/System.out.println("Errors: " + errors);
+        /* ============================= debug*/System.out.println("Longest Highway: " + longestHighway);
+        /* ============================= debug*/System.out.println("Longest Railroad: " + longestRailroad);
+
         return score;
+    }
+
+    public int getCenterScore()
+    {
+        return centerScore;
+    }
+
+    public int getNetworkScore()
+    {
+        return networkScore;
+    }
+
+    public int getErrors()
+    {
+        return errors;
+    }
+
+    public int getLongestHighway()
+    {
+        return longestHighway;
+    }
+
+    public int getLongestRailroad()
+    {
+        return longestRailroad;
+    }
+
+    private class RouteNode
+    {
+        char entry;
+        Tile data;
+
+        RouteNode(char entry, Tile data)
+        {
+            this.data = data;
+            this.entry = data.getEdge(entry);
+        }
+
+        boolean isValidExit(char otherEdge)
+        {
+            if(otherEdge != '0')
+            {
+                if(data.getRouteType() == 'S')
+                {
+                    return true;
+                }
+                else
+                {
+                    if(entry == otherEdge)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        boolean isValidRouteConnection(char edge, ArrayList<String> evaluated)
+        {
+            //get the coordinates that are adjacent to the given edge
+            String adjCoords = board.getAdjCoords(edge, board.getPlacements().get(data.getCoords()));
+
+            if(board.getPlacements().containsKey(adjCoords))
+            { //if there is a tile placed at these coordinates
+                if(!evaluated.contains(adjCoords))
+                { //if the tile has not yet been evaluated
+                    if(isValidExit(board.getTile(adjCoords).getEdge(board.getOppositeEdge(edge))))
+                    { //if the connection is a valid exit. Stations can do both H and R.
+                        // For Overpasses or Normal the exit must be the same as the entry
+                        if(RailroadInk.areConnectedNeighbours(data.getPlacementString(),
+                                board.getTile(adjCoords).getPlacementString()))
+                        { //the RouteNodes are connected
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+    }
+
+    private class LengthNode extends RouteNode
+    {
+        private int cumulativeTotal;
+
+        LengthNode(int cumulativeTotal, char type, Tile data)
+        {
+            super(type, data);
+
+            if(cumulativeTotal == 0)
+            {
+                if(hasExitType(type))
+                {
+                    this.cumulativeTotal = 1;
+                }
+                else
+                {
+                    this.cumulativeTotal = 0;
+                }
+            }
+        }
+
+        boolean hasExitType(char type)
+        {
+            for(char edge : data.getEdges())
+            {
+                if(edge == type)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        void updateTotal(int newTotal)
+        {
+            cumulativeTotal = newTotal;
+        }
+
+        void addIfValid(char edge, ArrayList<String> evaluated, ArrayList<LengthNode> unevaluated)
+        {
+            String adjCoords = board.getAdjCoords(edge, data);
+            if(board.getPlacements().containsKey(adjCoords))
+            { // board contains a tile at these coordinates
+                if(!evaluated.contains(adjCoords))
+                { //tile has not already been evaluated
+                    if(RailroadInk.areConnectedNeighbours(board.getTile(adjCoords).getPlacementString(), data.getPlacementString()))
+                    { //tiles are legally connected
+                        if(alreadyInUnevaluated(unevaluated, adjCoords))
+                        {
+                            updateUnevaluatedNode(unevaluated, adjCoords);
+                        }
+                        else if(data.getEdge('E') == entry) //entry = type in super class
+                        {
+                            unevaluated.add(new LengthNode(cumulativeTotal + 1, entry, board.getTile(adjCoords)));
+                        }
+                        else
+                        {
+                            unevaluated.add(new LengthNode(0, entry, board.getTile(adjCoords)));
+                        }
+                    }
+                }
+            }
+        }
+
+        boolean alreadyInUnevaluated(ArrayList<LengthNode> unevaluated, String adjCoords)
+        {
+            for(LengthNode node : unevaluated)
+            {
+                if(node.data.getCoords().equals(adjCoords))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        void updateUnevaluatedNode(ArrayList<LengthNode> unevaluated, String adjCoords)
+        {
+            for(LengthNode node : unevaluated)
+            {
+                if(node.data.getCoords().equals(adjCoords))
+                {
+                    node.updateTotal(cumulativeTotal + 1);
+                    break;
+                }
+            }
+        }
     }
 }
