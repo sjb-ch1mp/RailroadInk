@@ -73,102 +73,59 @@ public class ScoreCalculator
         int errors = 0;
         for(Map.Entry<String, Tile> mapEntry : board.getPlacements().entrySet())
         {
-            //check on the edge first
-            if(mapEntry.getValue().getRow() == 'A')
-            { //placement is on top edge
-                if(mapEntry.getValue().getEdge('N') != '0' && !board.isExitCoord(mapEntry.getValue().getCoords()))
-                {
-                    errors++;
-                }
-            }
-            else if(mapEntry.getValue().getRow() == 'G')
-            { //placement is on bottom edge
-                if(mapEntry.getValue().getEdge('S') != '0' && !board.isExitCoord(mapEntry.getValue().getCoords()))
-                {
-                    errors++;
-                }
-            }
-            if(mapEntry.getValue().getColumn() == 0)
-            { //placement is on west edge
-                if(mapEntry.getValue().getEdge('W') != '0' && !board.isExitCoord(mapEntry.getValue().getCoords()))
-                {
-                    errors++;
-                }
-            }
-            else if(mapEntry.getValue().getColumn() == 6)
-            { //placement is on east edge
-                if(mapEntry.getValue().getEdge('E') != '0' && !board.isExitCoord(mapEntry.getValue().getCoords()))
+            Tile tile = mapEntry.getValue();
+
+            if(tile.getRow() > 'A')
+            {
+                if(errorAtEdge(tile, 'N'))
                 {
                     errors++;
                 }
             }
 
-            //check all other placements
-            String adjCoords = "";
-            if(mapEntry.getValue().getRow() > 'A')
-            { //check North edge
-                if(mapEntry.getValue().getEdge('N') != '0')
+            if(tile.getRow() < 'G')
+            {
+                if(errorAtEdge(tile, 'S'))
                 {
-                    adjCoords = board.getAdjCoords('N', mapEntry.getValue());
-                    if(!board.getPlacements().containsKey(adjCoords))
-                    {
-                        errors++;
-                    }
-                    else if(board.getPlacements().get(adjCoords).getEdge(board.getOppositeEdge('N')) != mapEntry.getValue().getEdge('N'))
-                    {
-                        errors++;
-                    }
-                }
-            }
-            if(mapEntry.getValue().getRow() < 'G')
-            { //check South edge
-                if(mapEntry.getValue().getEdge('S') != '0')
-                {
-                    adjCoords = board.getAdjCoords('S', mapEntry.getValue());
-                    if(!board.getPlacements().containsKey(adjCoords))
-                    {
-                        errors++;
-                    }
-                    else if(board.getPlacements().get(adjCoords).getEdge(board.getOppositeEdge('S')) != mapEntry.getValue().getEdge('S'))
-                    {
-                        errors++;
-                    }
-                }
-            }
-            if(mapEntry.getValue().getColumn() > 0)
-            { //check West edge
-                if(mapEntry.getValue().getEdge('W') != '0')
-                {
-                    adjCoords = board.getAdjCoords('W', mapEntry.getValue());
-                    if(!board.getPlacements().containsKey(adjCoords))
-                    {
-                        errors++;
-                    }
-                    else if(board.getPlacements().get(adjCoords).getEdge(board.getOppositeEdge('W')) != mapEntry.getValue().getEdge('W'))
-                    {
-                        errors++;
-                    }
-                }
-            }
-            if(mapEntry.getValue().getColumn() < 6)
-            { //check East edge
-                if(mapEntry.getValue().getEdge('E') != '0')
-                {
-                    adjCoords = board.getAdjCoords('E', mapEntry.getValue());
-                    if(!board.getPlacements().containsKey(adjCoords))
-                    {
-                        errors++;
-                    }
-                    else if(board.getPlacements().get(adjCoords).getEdge(board.getOppositeEdge('E')) != mapEntry.getValue().getEdge('E'))
-                    {
-                        errors++;
-                    }
+                    errors++;
                 }
             }
 
+            if(tile.getColumn() > 0)
+            {
+                if(errorAtEdge(tile, 'W'))
+                {
+                    errors++;
+                }
+            }
+
+            if(tile.getColumn() < 6)
+            {
+                if(errorAtEdge(tile, 'E'))
+                {
+                    errors++;
+                }
+            }
         }
 
         return errors;
+    }
+
+    boolean errorAtEdge(Tile tile, char edge)
+    {
+        if(tile.getEdge(edge) != '0')
+        {
+            String adjCoords = board.getAdjCoords(edge, tile);
+            if(!board.getPlacements().containsKey(adjCoords))
+            {
+                return true;
+            }
+            else if(board.getPlacements().get(adjCoords).getEdge(board.getOppositeEdge(edge)) != tile.getEdge(edge))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private int calculateNetworkScore()
@@ -245,6 +202,7 @@ public class ScoreCalculator
 
         }
 
+        /* ============================== debug */System.out.println("num routes: " + routes.size());
         return routes;
     }
 
@@ -261,6 +219,12 @@ public class ScoreCalculator
         {
             RouteNode routeNode = unevaluated.get(unevaluated.size() - 1);
             //add all legally connecting adjacent routeNodes to unevaluated
+
+            if(routeNode.data.getCoords().equals("F4"))
+            {
+                System.out.println("stop");
+            }
+
             if(routeNode.data.getRow() > 'A')
             { //check North
                 if(routeNode.isValidRouteConnection('N', evaluated))
@@ -308,6 +272,15 @@ public class ScoreCalculator
             route.add(routeNode.data);
         }
 
+
+        /* ============================== debug */System.out.println("route: ");
+        /* ====================================== debug*/
+        for(Tile tile : route)
+        {
+            System.out.print(tile.getPlacementString());
+        }
+        System.out.println();
+        /* ====================================== debug*/
         return route;
     }
 
@@ -435,11 +408,27 @@ public class ScoreCalculator
     {
         char entry;
         Tile data;
+        int numExits;
+        boolean evaluatedOnce;
 
         RouteNode(char entry, Tile data)
         {
             this.data = data;
             this.entry = data.getEdge(entry);
+
+            numExits = 0;
+            for(char edge : data.getEdges())
+            {
+                if(edge != '0')
+                {
+                    numExits++;
+                }
+            }
+
+            if(numExits == 4)
+            {
+                evaluatedOnce = false;
+            }
         }
 
         boolean isValidExit(char otherEdge)
@@ -464,7 +453,7 @@ public class ScoreCalculator
         boolean isValidRouteConnection(char edge, ArrayList<String> evaluated)
         {
             //get the coordinates that are adjacent to the given edge
-            String adjCoords = board.getAdjCoords(edge, board.getPlacements().get(data.getCoords()));
+            String adjCoords = board.getAdjCoords(edge, board.getTile(data.getCoords()));
 
             if(board.getPlacements().containsKey(adjCoords))
             { //if there is a tile placed at these coordinates

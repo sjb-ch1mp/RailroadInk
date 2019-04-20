@@ -738,7 +738,6 @@ public class Viewer extends Application {
                  id.append((char)(y + 65));
                  id.append(x);
 
-
                  if(gameMode != 'v' && boardRef.getPlacements().containsKey(id.toString()))
                  { //there is a placement here
                     tile = ImageHandler.getTileImage(boardRef.getTile(id.toString()));
@@ -765,12 +764,11 @@ public class Viewer extends Application {
                      layers.getChildren().addAll(tile, coordinates);
 
                      //add to the board
-                     boardProper.add(layers, y, x);
+                     boardProper.add(layers, x, y);
                  }
                  else
                  {
                      //add to the board
-
                      setUpDropTarget(tile);
                      boardProper.add(tile, x, y);
                  }
