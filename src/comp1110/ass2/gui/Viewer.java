@@ -1,13 +1,9 @@
 package comp1110.ass2.gui;
 
-
-import comp1110.ass2.Board;
-import comp1110.ass2.PlayerData;
-import comp1110.ass2.ComputerOpponent;
-import comp1110.ass2.Placement;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
+/* IMPORT STATEMENTS FOR GAME */
+import comp1110.ass2.*;
 import javafx.geometry.Insets;
+import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -18,28 +14,15 @@ import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.application.Application;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.RadioButton;
-import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.ImageView;
-import javafx.util.Duration;
-
 import java.util.HashMap;
-
 import static javafx.scene.layout.BorderStroke.MEDIUM;
 
-/* IMPORT STATEMENTS FOR TASK 4
-import comp1110.ass2.*;
-import javafx.geometry.Insets;
+/* IMPORT STATEMENTS FOR VIEWER */
 import javafx.scene.Group;
 import javafx.scene.input.KeyCode;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import java.util.ArrayList;
-*/
 
 /**
  * A very simple viewer for tile placements in the Railroad Ink game.
@@ -101,8 +84,12 @@ public class Viewer extends Application {
         btnComputer.setMaxSize(170, 10);
         btnComputer.setFont(Font.font("Garamond", FontWeight.BOLD, 15));
 
+        RadioButton btnViewer = new RadioButton("Use Viewer");
+        btnViewer.setMaxSize(170, 10);
+        btnViewer.setFont(Font.font("Garamond", FontWeight.BOLD, 15));
+
         ToggleGroup tgPlayMode = new ToggleGroup();
-        tgPlayMode.getToggles().addAll(btnSinglePlayer, btnMultiPlayer, btnComputer);
+        tgPlayMode.getToggles().addAll(btnSinglePlayer, btnMultiPlayer, btnComputer, btnViewer);
 
         btnSinglePlayer.setSelected(true);
         Button btnPlay = new Button("Play");
@@ -123,11 +110,16 @@ public class Viewer extends Application {
                 player = 1;
                 launchGameStage();
             }
-            else
-            { //btnComputer is selected
+            else if(btnComputer.isSelected())
+            {
                 gameMode = 'c';
                 player = 1;
                 launchGameStage();
+            }
+            else
+            { //btnViewer is selected
+                gameMode = 'v';
+                launchViewer();
             }
         });
 
@@ -135,7 +127,7 @@ public class Viewer extends Application {
         rootLaunch.setBackground(new Background(new BackgroundFill(Color.LIGHTBLUE, null, null)));
         rootLaunch.setSpacing(25);
         rootLaunch.setAlignment(Pos.CENTER);
-        rootLaunch.getChildren().addAll(logo, btnSinglePlayer, btnMultiPlayer, btnComputer, btnPlay, txtNotification);
+        rootLaunch.getChildren().addAll(logo, btnSinglePlayer, btnMultiPlayer, btnComputer, btnViewer, btnPlay, txtNotification);
 
         launchStage.setScene(new Scene(rootLaunch, 550, 550));
         launchStage.setResizable(false);
@@ -143,7 +135,6 @@ public class Viewer extends Application {
 
         return launchStage;
     }
-
 
     private void launchGameStage()
     {
@@ -234,7 +225,14 @@ public class Viewer extends Application {
         {
             playerData = null;
             quitStage.close();
-            gameStage.close();
+            if(gameMode == 'v')
+            {
+                viewerStage.close();
+            }
+            else
+            {
+                gameStage.close();
+            }
             start(new Stage());
         });
         btnNo.setOnAction(ae -> quitStage.close());
@@ -372,7 +370,8 @@ public class Viewer extends Application {
                         //calculate score and end game
                         if(gameMode == 's')
                         {
-                            System.out.println(playerData.get(1).boardData.calculateScore());
+                            txtNotification.setText("Well done! Your score is " + playerData.get(1).boardData.calculateScore());
+                            btnRoll.setVisible(false);
                         }
                         else
                         { //gameMode = 'c'
@@ -739,7 +738,8 @@ public class Viewer extends Application {
                  id.append((char)(y + 65));
                  id.append(x);
 
-                 if(boardRef.getPlacements().containsKey(id.toString()))
+
+                 if(gameMode != 'v' && boardRef.getPlacements().containsKey(id.toString()))
                  { //there is a placement here
                     tile = ImageHandler.getTileImage(boardRef.getTile(id.toString()));
                  }
@@ -755,35 +755,48 @@ public class Viewer extends Application {
                      }
                  }
 
-                 //add to the board
                  tile.setId(id.toString());
-                 setUpDropTarget(tile);
-                 boardProper.add(tile, x, y);
+
+                 if(gameMode == 'v')
+                 {
+                     //layer the text over the image of the tile
+                     Text coordinates = new Text(id.toString());
+                     StackPane layers = new StackPane();
+                     layers.getChildren().addAll(tile, coordinates);
+
+                     //add to the board
+                     boardProper.add(layers, y, x);
+                 }
+                 else
+                 {
+                     //add to the board
+
+                     setUpDropTarget(tile);
+                     boardProper.add(tile, x, y);
+                 }
              }
          }
      }
 
 
-    /* ===========================================
-       ALL METHODS BELOW THIS POINT ARE FOR TASK 4
-       ===========================================
+    /*
+    ========================================================
+   ALL METHODS BELOW THIS POINT ARE FOR THE VIEWER (TASK 4)
+   ========================================================
+   */
 
-    /* board layout *
+    /* board layout */
     private static final int VIEWER_WIDTH = 1024;
     private static final int VIEWER_HEIGHT = 768;
 
-    private CheckBox withRules; //This checkbox is selected to apply the placement rules of the game
+    private Stage viewerStage;
     private Board boardData = null; //This Board object stores tiles when the rules are applied
-    private final HBox boardAndTiles = new HBox(); //Contains the board and the tileContainer
-    private final VBox tileContainer = new VBox(); //Contains the columns of tiles
-    private final VBox board = new VBox(); //Contains the board and textWarning
-    private GridPane boardProper; //The GridPane for the actual board
-    private final VBox root = new VBox();
-    private final Group controls = new Group();
+    private VBox tileContainer; //Contains the columns of tiles
+    private VBox root;
+    private Group controls = new Group();
     private ArrayList<Placement> prevPlacements = null; //Holds information about previous placements so that they can be removed
     private TextField textField;
     private Text textWarning;
-    private Button btnReset; //Clears the board
 
     /**
      * This is the primary method that controls the flow of the placement string,
@@ -791,8 +804,8 @@ public class Viewer extends Application {
      * and also whether or not the rules are being applied.
      *
      * @param placement A valid placement string
-     *
-    void makePlacement(String placement) {
+     */
+    private void makePlacement(String placement) {
         // FIXME Task 4: implement the simple placement viewer
 
         if(placement.length() > 5 && RailroadInk.isBoardStringWellFormed(placement))
@@ -823,42 +836,11 @@ public class Viewer extends Application {
     }
 
     /**
-     * The makePlacementWithRules() method is called when the withRules checkbox
-     * is selected. This applies the placement rules of the game to each placement
-     * by attempting to add the tile to the Board object. If it successfully adds the
-     * Tile, then the placement is legal and the image is shown on the board.
-     *
-     * @param placement A valid placement String
-     *
-    void makePlacementWithRules(String placement)
-    {
-        if(placement.length() > 5)
-        { //According to the rules, you can only place one tiles at a time
-            textWarning.setText("You may only place one tile at a time.");
-        }
-        else if(placement.length() == 5 && RailroadInk.isTilePlacementWellFormed(placement))
-        { //A valid placement string
-            if(boardData.addTile(placement))
-            { //if the tile is successfully added to the board
-                makeSinglePlacement(placement); //paint it on the UI
-            }
-            else
-            { //the placement violates the rules of the game
-                textWarning.setText("Illegal placement! Try again.");
-            }
-        }
-        else
-        { //otherwise, the placement string is invalid
-            textWarning.setText("Bad placement string! Try again.");
-        }
-    }
-
-    /**
      * This method paints a single tile placement on the board UI.
      *
      * @param placement A valid placement string
-     *
-    void makeSinglePlacement(String placement)
+     */
+    private void makeSinglePlacement(String placement)
     {
         //create a Placement object to access components of placement
         Placement p = new Placement(placement);
@@ -886,7 +868,7 @@ public class Viewer extends Application {
 
     /**
      * This method resets the board by painting blank tiles over all previous placements.
-     *
+     */
     private void resetBoard()
     {
         textWarning.setText("");
@@ -907,7 +889,7 @@ public class Viewer extends Application {
      * This method paints a blank tile over a previous placement on the board.
      *
      * @param prevPlacement A previous placement on the board
-     *
+     */
     private void refreshTile(Placement prevPlacement)
     {
         Text id = new Text(prevPlacement.getCoords()); //get the coordinates of the previous placement
@@ -930,40 +912,20 @@ public class Viewer extends Application {
 
     /**
      * Create a basic text field for input and a refresh button.
-     *
+     */
     private void makeControls() {
-        Label label1 = new Label("Placement:");
+        Text label1 = new Text("Placement:");
+        formatText(label1, 18, true, false);
         Button button = new Button("Refresh");
-        withRules = new CheckBox("Rules");
+        formatButton(button);
         textField = new TextField();
         textField.setPrefWidth(300);
-
-        withRules.setOnAction(ae ->
-        { //if with rules is selected
-            textWarning.setText(""); //refresh the warning text
-            resetBoard(); //reset the board
-            if(!btnReset.isVisible())
-            { //if the reset button is not visible, make it visible
-                btnReset.setVisible(true);
-                button.setVisible(false);
-            }
-            else
-            { //otherwise it is not needed - make it invisible
-                btnReset.setVisible(false);
-                button.setVisible(true);
-            }
-        });
 
         button.setOnAction(e -> {
             textWarning.setText(""); //refresh the warning text
             if(textField.getText().equals(""))
             {
                 resetBoard();
-            }
-            else if(withRules.isSelected())
-            { //if the rules are being applied
-                makePlacementWithRules(textField.getText());
-                textField.clear();
             }
             else
             { //otherwise, do an unchecked placement
@@ -982,7 +944,7 @@ public class Viewer extends Application {
         });
 
         HBox hb = new HBox();
-        hb.getChildren().addAll(label1, textField, button, withRules);
+        hb.getChildren().addAll(label1, textField, button);
         hb.setSpacing(10);
         hb.setLayoutX(130);
         hb.setLayoutY(VIEWER_HEIGHT - 50);
@@ -991,13 +953,13 @@ public class Viewer extends Application {
 
     /**
      * This method makes the sub-UI that contains all the tiles for the user to reference.
-     *
+     */
     private void makeTiles()
     {
 
         ImageView img;
         Text title = new Text("Tiles"); //the title for the sub-UI
-        title.setFont(Font.font("Impact", FontWeight.BOLD, 20));
+        title.setFont(Font.font("Garamond", FontWeight.BOLD, 20));
         Text tileId;
         HBox tileColumnContainer = new HBox(); //the container that holds the columns of tiles
 
@@ -1025,167 +987,36 @@ public class Viewer extends Application {
             tileColumnContainer.getChildren().add(tileColumn);
         }
 
+        //add the menu button
+        Button btnMenu = new Button("Main menu");
+        btnMenu.setOnAction(ae -> quitQuery());
+        formatButton(btnMenu);
+
         //clean up the presentation
         tileColumnContainer.setSpacing(10);
-        tileContainer.getChildren().addAll(title, tileColumnContainer);
+        VBox innerTileContainer = new VBox();
+        innerTileContainer.getChildren().addAll(title, tileColumnContainer);
+        innerTileContainer.setAlignment(Pos.CENTER);
+        innerTileContainer.setSpacing(10);
+        innerTileContainer.setPadding(new Insets(5));
+        innerTileContainer.setBackground(new Background(new BackgroundFill(Color.LAVENDER, null, null)));
+        innerTileContainer.setBorder(new Border(new BorderStroke(Color.MEDIUMPURPLE, BorderStrokeStyle.SOLID, null, BorderStroke.THIN)));
+
+        //add to tileContainer
+        tileContainer = new VBox();
         tileContainer.setAlignment(Pos.CENTER);
         tileContainer.setSpacing(10);
-        tileContainer.setPadding(new Insets(5));
-        tileContainer.setBackground(new Background(new BackgroundFill(Color.LAVENDER, null, null)));
-        tileContainer.setBorder(new Border(new BorderStroke(Color.MEDIUMPURPLE, BorderStrokeStyle.SOLID, null, BorderStroke.THIN)));
+        tileContainer.getChildren().addAll(btnMenu, innerTileContainer);
     }
 
-    /**
-     * The makeBoard() method sets up the edges of the board, as well as the
-     * board proper, as GridPanes.
-     * The eastEdge, westEdge and boardProper are housed within a HBox (middleContainer),
-     * which is in turn sandwiched between the northEdge and southEdge and housed in the
-     * board VBox.
-     * Green squares are used for the edges, blue for the board and red for the center tiles.
-     *
-    private void makeBoard()
-    {
-        GridPane northEdge = new GridPane();
-        GridPane eastEdge = new GridPane();
-        GridPane southEdge = new GridPane();
-        GridPane westEdge = new GridPane();
-        HBox middleContainer = new HBox(); //this container holds the center of the board configuration (east, boardProper and west)
-        boardProper = new GridPane();
-        ImageView tile;
-
-        //make northEdge
-        northEdge.setAlignment(Pos.CENTER);
-        for(int i=0; i<9; i++)
-        {
-            if(i==2 || i==6)
-            { //if this tile is highway exit
-                tile = ImageHandler.getExitImage('N', 'H');
-            }
-            else if(i==4)
-            { //if this tile is a railroad exit
-                tile = ImageHandler.getExitImage('N', 'R');
-            }
-            else
-            { //otherwise, get a blank edge tile
-                tile = ImageHandler.getMiscTile("EDGE_TILE");
-            }
-            northEdge.add(tile, i, 0);
-        }
-
-        //make eastEdge
-        for(int i=0; i<7; i++)
-        {
-            if(i==1 || i==5)
-            { //if this tile is a railroad exit
-                tile = ImageHandler.getExitImage('E', 'R');
-            }
-            else if(i==3)
-            { //if this tile is a highway exit
-                tile = ImageHandler.getExitImage('E', 'H');
-            }
-            else
-            { //otherwise, get a blank edge tile
-                tile = ImageHandler.getMiscTile("EDGE_TILE");
-            }
-            eastEdge.add(tile, 0, i);
-        }
-
-        //make southEdge
-        southEdge.setAlignment(Pos.CENTER);
-        for(int i=0; i<9; i++)
-        {
-            if(i==2 || i==6)
-            { //if this tile is a highway exit
-                tile = ImageHandler.getExitImage('S', 'H');
-            }
-            else if(i==4)
-            { //if this tile is a railroad exit
-                tile = ImageHandler.getExitImage('S', 'R');
-            }
-            else
-            { //otherwise get a blank edge tile
-                tile = ImageHandler.getMiscTile("EDGE_TILE");
-            }
-            southEdge.add(tile, i, 0);
-        }
-
-        //make westEdge
-        for(int i=0; i<7; i++)
-        {
-            if(i==1 || i==5)
-            { //if this tile is a railroad exit
-                tile = ImageHandler.getExitImage('W', 'R');
-            }
-            else if(i==3)
-            { //if this tile is a highway exit
-                tile = ImageHandler.getExitImage('W', 'H');
-            }
-            else
-            { //otherwise, get a blank edge tile
-                tile = ImageHandler.getMiscTile("EDGE_TILE");
-            }
-            westEdge.add(tile, 0, i);
-        }
-
-        //make boardProper
-        makeBoardProper();
-
-        //add to middle container
-        middleContainer.getChildren().addAll(westEdge, boardProper, eastEdge);
-        middleContainer.setAlignment(Pos.CENTER);
-
-        //add everything to the board
-        board.getChildren().addAll(northEdge, middleContainer, southEdge);
-        board.setAlignment(Pos.CENTER);
-    }
-
-    /**
-     * The makeBoardProper() method makes the boardProper GridPane.
-     *
-    private void makeBoardProper()
-    {
-        StackPane layers;
-        ImageView tile;
-        Text coordinates;
-        for(int y=0; y<7; y++)
-        {
-            for(int x=0; x<7; x++)
-            {
-                if(y > 1 && y < 5 && x > 1 && x < 5)
-                { //create center tile
-                    tile = ImageHandler.getMiscTile("CENTER_TILE");
-                }
-                else
-                { //create blank tile
-                    tile = ImageHandler.getMiscTile("BLANK_TILE");
-                }
-
-                //build the id from the x and y values
-                StringBuilder id = new StringBuilder();
-                id.append((char)(x + 65));
-                id.append(y);
-                tile.setId(id.toString());
-
-                //layer the text over the image of the tile
-                coordinates = new Text(id.toString());
-                layers = new StackPane();
-                layers.getChildren().addAll(tile, coordinates);
-
-                //add to the board
-                boardProper.add(layers, y, x);
-            }
-        }
-    }
-
-    @Override
-    public void start(Stage primaryStage) throws Exception {
-        primaryStage.setTitle("StepsGame Viewer");
-        Scene scene = new Scene(root, VIEWER_WIDTH, VIEWER_HEIGHT);
+    public void launchViewer(){
 
         boardData = new Board();
-        makeBoard();
+        boardProper = new GridPane();
+        setUpBoard();
         makeTiles();
-        boardAndTiles.getChildren().addAll(board, tileContainer);
+        HBox boardAndTiles = new HBox();
+        boardAndTiles.getChildren().addAll(boardContainer, tileContainer);
         boardAndTiles.setAlignment(Pos.CENTER);
         boardAndTiles.setSpacing(10);
 
@@ -1193,19 +1024,21 @@ public class Viewer extends Application {
         textWarning = new Text();
         textWarning.setFont(Font.font("Impact", FontWeight.BOLD, 20));
         textWarning.setTextAlignment(TextAlignment.CENTER);
-        btnReset = new Button("Reset board");
-        btnReset.setVisible(false);
-        btnReset.setOnAction(ae -> resetBoard());
 
-        root.getChildren().add(btnReset);
+        root = new VBox();
         root.getChildren().add(boardAndTiles);
         root.getChildren().add(textWarning);
         root.getChildren().add(controls);
+        formatBox(root, Color.LIGHTBLUE, 10, false);
         root.setSpacing(20);
         root.setAlignment(Pos.CENTER);
 
-        primaryStage.setScene(scene);
-        primaryStage.show();
+        viewerStage = new Stage();
+        viewerStage.setTitle("Railroad Ink Viewer");
+        viewerStage.setScene(new Scene(root, VIEWER_WIDTH, VIEWER_HEIGHT));
+        viewerStage.setResizable(false);
+
+        launchStage.close();
+        viewerStage.show();
     }
-    */
 }
