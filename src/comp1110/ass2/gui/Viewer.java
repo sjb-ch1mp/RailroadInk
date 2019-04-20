@@ -106,15 +106,21 @@ public class Viewer extends Application {
             }
             else if(btnMultiPlayer.isSelected())
             {
+                txtNotification.setText("Two player under development");
+                /*
                 gameMode = 'm';
                 player = 1;
                 launchGameStage();
+                */
             }
             else if(btnComputer.isSelected())
             {
+                txtNotification.setText("Computer opponent under development");
+                /*
                 gameMode = 'c';
                 player = 1;
                 launchGameStage();
+                */
             }
             else
             { //btnViewer is selected
