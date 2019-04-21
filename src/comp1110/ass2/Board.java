@@ -443,7 +443,14 @@ public class Board
     public int calculateScore()
     {
         ScoreCalculator scoreCalculator = new ScoreCalculator(this);
-        return scoreCalculator.getScore();
+
+        /*======================= debug*/
+        System.out.println("errors: " + scoreCalculator.getErrors());
+        System.out.println("network score: " + scoreCalculator.getNetworkScore());
+        System.out.println("center score: " + scoreCalculator.getCenterScore());
+        /*======================= debug*/
+
+        return scoreCalculator.getAdvancedScore();
     }
 
     public HashMap<String, String> getExitCoords()

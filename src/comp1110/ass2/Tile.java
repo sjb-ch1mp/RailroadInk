@@ -11,12 +11,12 @@ import java.util.HashMap;
 
 public class Tile
 {
-    HashMap<String, Character[]> constructors;
+    private HashMap<String, Character[]> constructors;
     private final int TOTAL_ORIENTATIONS = 8;
     private char[] edges; //edges stores the connectors on each edge of the tile (north, east, south, west)
     private String id;
     private int orientation;
-    private char routeType; //stores the route type, 'O' = overpass, 'S' = station, 'N' = neither
+    private char intersectionType;
     private char row; //the row and column of a given placement can be stored when the tile is placed on the board
     private int column; //this is for calculating score
     private boolean used; //this stores whether the tile has been used (dices and special tiles)
@@ -28,7 +28,7 @@ public class Tile
 
         this.id = id;
         this.orientation = 0;
-        this.routeType = constructors.get(id)[0];
+        intersectionType = constructors.get(id)[0];
         used = false;
         selected = false;
 
@@ -129,6 +129,17 @@ public class Tile
         return column;
     }
 
+    public int getTestValue(int i)
+    {
+        switch(i)
+        {
+            case 0: return (int) row;
+            case 1: return column;
+            case 2: return (int) row;
+            default: return column;
+        }
+    }
+
     public String getCoords()
     {
         return "" + row + column;
@@ -176,9 +187,14 @@ public class Tile
         return edges;
     }
 
-    public char getRouteType()
+    public boolean isOverPass()
     {
-        return routeType;
+        return intersectionType == 'O';
+    }
+
+    public boolean isStation()
+    {
+        return intersectionType == 'S';
     }
 
     public void addCoordinates(String coords)

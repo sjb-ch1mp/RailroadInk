@@ -14,30 +14,6 @@ public class RailroadInk
             {"F0","F1","F2","F3","F4","F5","F6"},
             {"G0","G1","G2","G3","G4","G5","G6"}};
 
-    /*
-     * Assets required for UI:
-     *   -   Image for EACH TILE in orientation 0.
-     *   -   Image for a BLANK TILE. This image is used on the outer edge of the board and is blank.
-     *   -   Image for EACH EXIT TILE. There are 8 unique exit tiles.
-     *
-     * Note to selves:
-     *   -   My idea about tracking used tiles with an INVALID image might be better done
-     *       by just making those used tiles not appearing in the sub-UIs once they're place... A thought for later :)
-     * */
-
-    /* commented out so that it doesn't cause errors
-    Board board; //holds all board data
-    Dices dices; //holds all data for the dices
-    SpecialTiles specialTiles; //holds all data for the special tiles
-    ScoreCalculator scoreCalculator; //will be passed the board when finished to calculate the final score
-    int turnCounter = 1; //keeps track of what turn it is (starts at 1)
-
-    RailroadInk()
-    {
-        //constructor for the RailroadInk object
-    }
-    */
-
     /**
      * Determine whether a tile placement string is well-formed:
      * - it consists of exactly 5 characters;
