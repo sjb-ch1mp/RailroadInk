@@ -219,7 +219,7 @@ public class ScoreCalculator
                     if(board.getPlacements().containsKey(adjCoords))
                     { //tile exists at these coordinates
                         adjRouteNode = new RouteNode(board.getTile(adjCoords).getEdge(board.getOppositeEdge(edge)), board.getTile(adjCoords));
-                        if(!alreadyEvaluated(adjRouteNode, evaluated) && !alreadyInUnevaluated(adjRouteNode, unevaluated))
+                        if(!alreadyInArrayList(adjRouteNode, evaluated) && !alreadyInArrayList(adjRouteNode, unevaluated))
                         {//routeNode has not yet been evaluated
                             if(!routeNode.data.isOverPass())
                             {
@@ -244,7 +244,7 @@ public class ScoreCalculator
                                 if(board.getPlacements().containsKey(adjCoords))
                                 { //if the tile on the other side of the overpass exists
                                     adjRouteNode = new RouteNode(board.getTile(adjCoords).getEdge(board.getOppositeEdge(edge)), board.getTile(adjCoords));
-                                    if(!alreadyEvaluated(adjRouteNode, evaluated) && !alreadyInUnevaluated(adjRouteNode, unevaluated))
+                                    if(!alreadyInArrayList(adjRouteNode, evaluated) && !alreadyInArrayList(adjRouteNode, unevaluated))
                                     {//the tile on the other side of the overpass has not been evaluated
                                         if(exit != '0' && exit == adjRouteNode.entry)
                                         {
@@ -270,29 +270,17 @@ public class ScoreCalculator
         return route;
     }
 
-    private boolean alreadyEvaluated(RouteNode adjRouteNode, ArrayList<RouteNode> evaluated)
+    private boolean alreadyInArrayList(RouteNode routeNode, ArrayList<RouteNode> arrayList)
     {
-        for(RouteNode routeNode : evaluated)
+        for(RouteNode evaluatedNode : arrayList)
         {
-            if(routeNode.data.getCoords().equals(adjRouteNode.data.getCoords()))
+            if(evaluatedNode.data.getCoords().equals(routeNode.data.getCoords()))
             {
                 return true;
             }
         }
         return false;
     }
-    private boolean alreadyInUnevaluated(RouteNode adjRouteNode, ArrayList<RouteNode> unevaluated)
-    {
-        for(RouteNode routeNode : unevaluated)
-        {
-            if(routeNode.data.getCoords().equals(adjRouteNode.data.getCoords()))
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
 
     private int calculateLongestRoute(char type)
     {
@@ -363,44 +351,4 @@ public class ScoreCalculator
             this.entry = entry;
         }
     }
-
-    private class LengthNode extends RouteNode
-    {
-        private int cumulativeTotal;
-
-        LengthNode(int cumulativeTotal, char type, Tile data)
-        {
-            super(type, data);
-
-            if(cumulativeTotal == 0)
-            {
-                if(hasExitType(type))
-                {
-                    this.cumulativeTotal = 1;
-                }
-                else
-                {
-                    this.cumulativeTotal = 0;
-                }
-            }
-        }
-
-        boolean hasExitType(char type)
-        {
-            for(char edge : data.getEdges())
-            {
-                if(edge == type)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        void updateTotal(int newTotal)
-        {
-            cumulativeTotal = newTotal;
-        }
-    }
-
 }
