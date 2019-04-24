@@ -62,16 +62,30 @@ public class SpecialTiles
         specialTiles.get(sTile).useTile();
     }
 
+    /**
+     * Returns the counter that tracks the number of special tiles
+     * used this round.
+     * @return (int) specialCounterRound
+     */
     public int getCounterRound()
     {
         return specialCounterRound;
     }
 
+    /**
+     * Returns the counter that tracks the number of special tiles
+     * used this game.
+     * @return (int) specialCounterGame
+     */
     public int getCounterGame()
     {
         return specialCounterGame;
     }
 
+    /**
+     * This method resets the counter that tracks the number
+     * of special tiles used this round.
+     */
     public void resetCounterRound()
     {
         specialCounterRound = 0;
@@ -88,11 +102,21 @@ public class SpecialTiles
         return specialTiles.get(sTile).isUsed();
     }
 
+    /**
+     * This method returns the Tile object for the requested
+     * special tile.
+     * @param sTile (String) The identifier for the special tile (S1-S6).
+     * @return Tile (Tile) The Tile object for the requested special tile
+     */
     public Tile getSpecialTile(String sTile)
     {
         return specialTiles.get(sTile);
     }
 
+    /**
+     * This method deselects all special tile so that when the Special Tiles UI is
+     * reloaded, there are no special tiles selected.
+     */
     public void deselectAll()
     {
         specialTiles.get("S1").deselectTile();

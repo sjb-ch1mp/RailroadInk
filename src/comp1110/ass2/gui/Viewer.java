@@ -60,12 +60,21 @@ public class Viewer extends Application {
         launch(args);
     }
 
+    /**
+     * The start method of the Viewer launches the game menu (launchStage)
+     * @param primaryStage
+     */
     public void start(Stage primaryStage)
     {
         launchStage = buildLaunchStage(primaryStage);
         launchStage.show();
     }
 
+    /**
+     * This method creates the launchStage which acts as the game menu.
+     * @param launchStage
+     * @return (Stage) launchStage
+     */
     private Stage buildLaunchStage(Stage launchStage)
     {
         ImageView logo = ImageHandler.getMiscTile("Logo");
@@ -73,19 +82,19 @@ public class Viewer extends Application {
         logo.setFitHeight(240);
 
         RadioButton btnSinglePlayer = new RadioButton("Single Player");
-        btnSinglePlayer.setMaxSize(170, 10);
+        btnSinglePlayer.setMaxSize(200, 10);
         btnSinglePlayer.setFont(Font.font("Garamond", FontWeight.BOLD, 15));
 
         RadioButton btnMultiPlayer = new RadioButton("Multi-player");
-        btnMultiPlayer.setMaxSize(170, 10);
+        btnMultiPlayer.setMaxSize(200, 10);
         btnMultiPlayer.setFont(Font.font("Garamond", FontWeight.BOLD, 15));
 
         RadioButton btnComputer = new RadioButton("Computer Opponent");
-        btnComputer.setMaxSize(170, 10);
+        btnComputer.setMaxSize(200, 10);
         btnComputer.setFont(Font.font("Garamond", FontWeight.BOLD, 15));
 
         RadioButton btnViewer = new RadioButton("Use Viewer");
-        btnViewer.setMaxSize(170, 10);
+        btnViewer.setMaxSize(200, 10);
         btnViewer.setFont(Font.font("Garamond", FontWeight.BOLD, 15));
 
         ToggleGroup tgPlayMode = new ToggleGroup();
@@ -96,6 +105,12 @@ public class Viewer extends Application {
         formatButton(btnPlay);
         Text txtNotification = new Text();
 
+        /* Choosing different RadioButtons changes the gameMode field.
+         * The gameMode field is accessed through the launchGameStage()
+         * method to determine which game is loaded, and also throughout
+         * the game by event handlers to ensure that the correct
+         * actions are carried out depending upon the game mode.
+         */
         btnPlay.setOnAction(ae ->
         {
             if(btnSinglePlayer.isSelected())
@@ -106,21 +121,17 @@ public class Viewer extends Application {
             }
             else if(btnMultiPlayer.isSelected())
             {
-                txtNotification.setText("Two player under development");
-                /*
+                //txtNotification.setText("Two player under development");
                 gameMode = 'm';
                 player = 1;
                 launchGameStage();
-                */
             }
             else if(btnComputer.isSelected())
             {
-                txtNotification.setText("Computer opponent under development");
-                /*
+                //txtNotification.setText("Computer opponent under development");
                 gameMode = 'c';
                 player = 1;
                 launchGameStage();
-                */
             }
             else
             { //btnViewer is selected
@@ -142,36 +153,56 @@ public class Viewer extends Application {
         return launchStage;
     }
 
+    /**
+     * This method builds the actual game stage and launches it.
+     */
     private void launchGameStage()
     {
-        //if this is the first launch, initialise playerData
+        /*
+        * If this is the first time the game stage has been loaded this game,
+        * create the playerData HashMap which holds the data for the Board, Dices and
+        * Special Tiles
+        * */
         if(playerData == null)
         {
             playerData = new HashMap<>(0);
 
             if(gameMode == 's')
-            {
+            { //If single player, create only one PlayerData object and put it in the playerData HashMap
                 playerData.put(1, new PlayerData(1, new Board(), new Dices(), new SpecialTiles()));
                 playerData.get(1).diceData.rollDice();
             }
             else if(gameMode == 'm')
-            {
+            { //If two player, create two PlayerData objects
                 playerData.put(1, new PlayerData(1, new Board(), new Dices(), new SpecialTiles()));
-                playerData.put(2, new PlayerData(1, new Board(), new Dices(), new SpecialTiles()));
+                playerData.put(2, new PlayerData(2, new Board(), new Dices(), new SpecialTiles()));
+
+                //Roll the dice of player one
                 playerData.get(1).diceData.rollDice();
+
+                //Copy the dice data into player two's PlayerData object
                 playerData.get(2).diceData.copyPlayerOneData(playerData.get(1).diceData);
             }
-            else
-            {
-                //gameMode = 'c'
+            else //gameMode == 'c'
+            { //If computer opponent is selected, create one PlayerData object
                 playerData.put(1, new PlayerData(1, new Board(), new Dices(), new SpecialTiles()));
+
+                //Roll the dice of player one
                 playerData.get(1).diceData.rollDice();
+
+                //Create a computerOpponent object and pass it a new PlayerData object
                 computerOpponent = new ComputerOpponent(new PlayerData(2, new Board(), new Dices(), new SpecialTiles()));
+
+                //Copy the dices of player one to the PlayerData of the computer opponent
                 computerOpponent.playerData.diceData.copyPlayerOneData(playerData.get(1).diceData);
             }
         }
 
-        //set up local reference variables for this launch
+        /* Set up local reference variables for this launch.
+        *  Each time the game board is reloaded, the correct player
+        *  data is accessed from the playerData HashMap because the
+        *  player field keeps track of which player's turn it is.
+        * */
         boardRef = playerData.get(player).boardData;
         diceRef = playerData.get(player).diceData;
         specialRef = playerData.get(player).specialData;
@@ -217,6 +248,12 @@ public class Viewer extends Application {
         gameStage.show();
     }
 
+    /**
+     * This method builds and launches the quitStage.
+     * The quitStage exists just in case a player accidentally clicks
+     * the Main Menu button. It asks the player if they are sure they would like
+     * to quit the current game.
+     */
     private void quitQuery()
     {
         Stage quitStage = new Stage();
@@ -227,6 +264,12 @@ public class Viewer extends Application {
         formatButton(btnYes);
         Button btnNo = new Button("No");
         formatButton(btnNo);
+
+        /*
+        * If the player selects yes, the game data is deleted,
+        * and whichever board is loaded is unloaded before the
+        * main menu is reloaded.
+        * */
         btnYes.setOnAction(ae ->
         {
             playerData = null;
@@ -241,7 +284,13 @@ public class Viewer extends Application {
             }
             start(new Stage());
         });
+
+        /*
+        * If the player selects no, the quitStage is unloaded and the
+        * game continues.
+        * */
         btnNo.setOnAction(ae -> quitStage.close());
+
         HBox buttons = new HBox();
         buttons.getChildren().addAll(btnYes, btnNo);
         formatBox(buttons, Color.LAVENDER, 50, false);
@@ -250,10 +299,15 @@ public class Viewer extends Application {
         root.getChildren().addAll(txtQuit, buttons);
 
         quitStage.setResizable(false);
-        quitStage.setScene(new Scene(root, 300, 100));
+        quitStage.setScene(new Scene(root, 350, 150));
         quitStage.show();
     }
 
+    /**
+     * This method sets up the fields above the game board
+     * that inform the player of whose turn it is and what round it
+     * is.
+     */
     private void setUpGameInfo()
     {
         Text txtPlayer = new Text("~ Player " + player + " ~");
@@ -265,11 +319,23 @@ public class Viewer extends Application {
         gameInfo.getChildren().addAll(txtPlayer, txtRound);
     }
 
+    /**
+     * This method sets up the Dice UI, which holds the dice tile and
+     * the roll button.
+     */
     private void setUpDiceUI()
     {
         Text txtDices = new Text("Dices");
         formatText(txtDices, 20, true, true);
 
+        /*
+        * The dice tiles are loaded each time a tile is selected or
+        * placed or roll button is clicked. The ImageView instantiation
+        * statements therefore need to track if the dice has been used
+        * or not so that it loads the correct image each time.
+        * Each dice tile is made selectable and rotatable by the
+        * setUpSelectAndRotate() method.
+        * */
         ImageView D1 = (diceRef.isUsed("D1"))?
                 ImageHandler.getMiscTile("invalid"):
                 ImageHandler.getTileImage(diceRef.getDice("D1"));
@@ -298,119 +364,122 @@ public class Viewer extends Application {
 
         HBox diceRowTwo = setUpRow(D3, D4);
 
+        /*
+        * These conditional statements ensure that the correct
+        * text is put on the roll button. This depends on
+        * which round the game is up to, or whether it is multiplayer.
+        * */
         Button btnRoll;
         if(gameMode == 's' || gameMode == 'c')
-        {
+        { //If the game is single player or computer opponent
+
+            //Set the roll button text to end game if it's round 7, otherwise set it to roll
             btnRoll = new Button((boardRef.getRound() == 7)?"End Game":"Roll");
         }
         else
         {
             if(player == 1)
-            {
+            { //In two player mode, player one's roll button always reads 'End Turn'
                 btnRoll = new Button("End Turn");
             }
             else
-            {
+            { //The End Game text is only shown on player two's button if it is round 7
                 btnRoll = new Button((boardRef.getRound() == 7)?"End Game":"End Turn");
             }
         }
-
         formatButton(btnRoll);
+
+        /*
+        * The roll button is perhaps the most important button on the game board because
+        * it controls the flow of the game. As such, it has a complex event handler which
+        * must track a number of different game elements.
+        * */
         btnRoll.setOnAction(ae ->
         {
             txtNotification.setText("");
 
             if(gameMode == 'm')
-            { //two player
+            { //If the game is in two player mode
                 if(!boardRef.legalMovesRemaining(diceRef))
-                {
+                { //If there are no legal moves remaining on the board
                     if(player == 1)
-                    {
-                        boardRef.iterateRoundCounter();
-                        specialRef.resetCounterRound();
+                    { //If it is player one's turn
 
-                        player = 2;
-                        gameStage.close();
+                        boardRef.iterateRoundCounter(); //iterate player one's round counter
+                        specialRef.resetCounterRound(); //reset player one's specials-used-per-round counter
+                        player = 2; //change the player field to 2 to ensure the correct data is loaded
+                        gameStage.close(); //relaunch the game stage with player two's data
                         launchGameStage();
-                        txtRound.setText("~ Round " + boardRef.getRound() + " ~");
-
-                        if(boardRef.getRound() == 7)
-                        {
-                            btnRoll.setText("End Game");
-                        }
+                        txtRound.setText("~ Round " + boardRef.getRound() + " ~"); //update the round notifier
                     }
                     else
-                    { //player = 2
+                    { //Otherwise, if it is player two's turn
                         if(btnRoll.getText().equals("End Game"))
-                        {// this is round 7
-                            //Calculate scores and end game
+                        {//If the roll button reads 'End Game'
+                            //Calculate the scores, and launch the endGameStage to declare the winner
+
                         }
                         else
-                        {
-                            boardRef.iterateRoundCounter();
-                            specialRef.resetCounterRound();
-
-                            player = 1;
-                            gameStage.close();
+                        { //Otherwise, it is not yet the final round
+                            boardRef.iterateRoundCounter(); //iterate player two's round counter
+                            specialRef.resetCounterRound(); //reset player two's specials-used-per-round counter
+                            player = 1; //change the player field to 1 to ensure the correct data is loaded
+                            gameStage.close(); //relaunch the game stage with player one's data
                             launchGameStage();
-                            diceRef.rollDice();
-                            playerData.get(2).diceData.copyPlayerOneData(diceRef);
-
-                            setUpDiceUI();
-                            txtRound.setText("~ Round " + boardRef.getRound() + " ~");
+                            diceRef.rollDice(); //roll player one's dice
+                            playerData.get(2).diceData.copyPlayerOneData(diceRef); //copy the dices into player two's data
+                            setUpDiceUI(); //reload the dice UI
+                            txtRound.setText("~ Round " + boardRef.getRound() + " ~"); //update the round notifier
                         }
 
                     }
                 }
                 else
-                {
+                { //Otherwise there are still legal moves
                     txtNotification.setText("You must place all of the dice!");
                 }
             }
             else
-            { //gameMode == 'c' or 's'
+            { //If the game mode is single player or computer opponent
                 if(!boardRef.legalMovesRemaining(diceRef))
-                { //if there are no more legal moves this round
+                { //If there are no more legal moves this round
                     if(btnRoll.getText().equals("End Game"))
-                    { //this is round 7
-                        //calculate score and end game
+                    { //If this is the last round
                         if(gameMode == 's')
-                        {
+                        { //Calculate the score and end the game
                             txtNotification.setText("Well done! Your score is " + playerData.get(1).boardData.calculateScore());
-                            btnRoll.setVisible(false);
+                            btnRoll.setVisible(false); //set the roll button to invisible so the player cannot press it
                         }
                         else
-                        { //gameMode = 'c'
-
+                        { //gameMode == 'c'
+                            //Calculate the scores, and launch the endGameStage to declare the winner
                         }
                     }
                     else
-                    {
+                    { //Otherwise it is not the last round
                         if(gameMode == 'c')
-                        {
+                        { //Player one's turn is finished, so the computer opponent has a turn
+
+                            //Everything to do with having a turn (e.g. round counters, tracking specials, etc)
+                            //should be handled within the computer opponent class
                             computerOpponent.haveTurn();
                         }
 
-                        boardRef.iterateRoundCounter();
-                        specialRef.resetCounterRound();
-                        diceRef.rollDice();
+                        boardRef.iterateRoundCounter(); //iterate player one's round counter
+                        specialRef.resetCounterRound(); //reset the specials-used-this-round counter
+                        diceRef.rollDice(); //roll the dice
 
                         if(gameMode == 'c')
-                        {
+                        { //If there is a computer opponent, copy the dice data into it's playerData
                             computerOpponent.playerData.diceData.copyPlayerOneData(diceRef);
                         }
 
-                        setUpDiceUI();
-                        txtRound.setText("~ Round " + boardRef.getRound() + " ~");
-
-                        if(boardRef.getRound() == 7)
-                        {
-                            btnRoll.setText("End Game");
-                        }
+                        setUpDiceUI(); //reload the dice UI
+                        txtRound.setText("~ Round " + boardRef.getRound() + " ~"); //update the round notifier
                     }
                 }
                 else
-                {
+                { //Otherwise there are still legal moves that can be made
                     txtNotification.setText("You must place all of the dice!");
                 }
             }
@@ -420,10 +489,23 @@ public class Viewer extends Application {
         dicesUI.getChildren().addAll(txtDices, diceRowOne, diceRowTwo, btnRoll);
     }
 
+    /**
+     * This method builds the interface for the Special Tiles. This holds the
+     * special tiles.
+     */
     private void setUpSpecialUI()
     {
         Text txtSpecials = new Text("Special Tiles");
         formatText(txtSpecials, 20, true, true);
+
+        /*
+        * The special tiles are loaded each time a tile is selected or
+        * placed or roll button is clicked. The ImageView instantiation
+        * statements therefore need to track if the tile has been used
+        * or not so that it loads the correct image each time.
+        * Each special tile is made selectable and rotatable by the
+        * setUpSelectAndRotate() method.
+        * */
         ImageView S1 = (specialRef.isUsed("S1"))?
             ImageHandler.getMiscTile("invalid"):
             ImageHandler.getTileImage(specialRef.getSpecialTile("S1"));
@@ -471,107 +553,121 @@ public class Viewer extends Application {
         specialUI.getChildren().addAll(txtSpecials, specialRowOne, specialRowTwo, specialRowThree);
     }
 
+    /**
+     * This method takes a tile and adds the event handler that allows
+     * dices and special tiles to be rotated and selected by the user.
+     * @param tile
+     */
     private void setUpSelectAndRotate(ImageView tile)
     {
         tile.setOnMouseClicked(ae ->
-        {
+        { //If this tile is the target of a mouse button click
+
+            //If the tile image is 'invalid.png' - do nothing
             if(tile.getImage().getUrl().contains("invalid.png")) return;
 
             txtNotification.setText("");
 
-            //deselect previous tile
+            //Deselect the previously selected tile
             if(selected != null)
             {
                 if(selected.charAt(0) == 'D')
-                {
-                    diceRef.getDice(selected).deselectTile();
-                    setUpDiceUI();
+                { //If the previously selected tile is a dice
+                    diceRef.getDice(selected).deselectTile(); //deselect the selected tile
+                    setUpDiceUI(); //and reload the dice UI
                 }
                 else
-                {
-                    specialRef.getSpecialTile(selected).deselectTile();
-                    setUpSpecialUI();
+                { //otherwise the previously selectted tile is a special tile
+                    specialRef.getSpecialTile(selected).deselectTile(); //deselect it
+                    setUpSpecialUI(); //and reload the special tile UI
                 }
             }
 
             if(ae.getButton().equals(MouseButton.PRIMARY))
-            {
-                selected = tile.getId();
+            { //If the left mouse button was clicked - SELECT THE TILE
 
-                //highlight selected tile
+                selected = tile.getId(); //add the tile id to the selected field
+
                 if(tile.getId().charAt(0) == 'D')
-                {
-                    diceRef.getDice(selected).selectTile();
-                    placement = new Placement(diceRef.getDice(tile.getId()));
-                    setUpDiceUI();
+                { //If the selected tile is a dice
+                    diceRef.getDice(selected).selectTile(); //select the tile
+                    placement = new Placement(diceRef.getDice(tile.getId())); //initiate the placement field with it's information
+                    setUpDiceUI(); //reload Dice UI (the selected dice will be highlighted by the ImageHandler class)
                 }
                 else
-                {
-                    specialRef.getSpecialTile(tile.getId()).selectTile();
-                    placement = new Placement(specialRef.getSpecialTile(tile.getId()));
-                    setUpSpecialUI();
+                { //otherwise the selected tile is a special tile
+                    specialRef.getSpecialTile(tile.getId()).selectTile(); //select the tile
+                    placement = new Placement(specialRef.getSpecialTile(tile.getId())); //initiate the placement field with it's information
+                    setUpSpecialUI(); //reload the Special Tile UI (the selected tile will be highlighted by the ImageHandler class)
                 }
             }
             else if(ae.getButton().equals(MouseButton.SECONDARY))
-            {
+            { //If the right mouse button was click - ROTATE THE TILE
                 if(tile.getId().charAt(0) == 'D')
-                { //tile is a dice
-                    diceRef.rotateDice(tile.getId());
-                    setUpDiceUI();
+                { //If the target tile is a dice
+                    diceRef.rotateDice(tile.getId()); //rotate the dice
+                    setUpDiceUI(); //reload the dice UI
                 }
                 else
-                { //tile is special
-                    specialRef.rotateTile(tile.getId());
-                    setUpSpecialUI();
+                { //Otherwise the target tile is a special tile
+                    specialRef.rotateTile(tile.getId()); //rotate the special tile
+                    setUpSpecialUI(); //reload the special tile UI
                 }
             }
         });
     }
 
+    /**
+     * This method adds an event handler to the tiles in the boardProper
+     * that allow them to be targets for dropping a selected tile.
+     * @param tile
+     */
     private void setUpDropTarget(ImageView tile)
     {
         tile.setOnMouseClicked(ae ->
         {
+            //If there is no placement to be made, do nothing
             if(placement == null) return;
 
             if(ae.getButton().equals(MouseButton.PRIMARY))
-            {
-                placement.updateCoordinates(tile.getId());
+            { //If the board tile is clicked with the left mouse button
+
+                placement.updateCoordinates(tile.getId()); //put the coordinates of the clicked tile into the placement string
 
                 if(selected.charAt(0) == 'D')
-                { //dice is selected
+                { //If the selected tile is a dice
                     if(boardRef.addTile(placement.toString()))
-                    {
-                        makeBoardProper();
-                        diceRef.useDice(selected);
-                        setUpDiceUI();
-                        selected = null;
+                    { //Add the placement to the player's board (if it is legal)
+                        makeBoardProper(); //reload the board
+                        diceRef.useDice(selected); //use the placed dice
+                        setUpDiceUI(); //reload the dice UI
+                        selected = null; //clear selected and placement fields
                         placement = null;
                     }
                     else
-                    {
+                    { //Otherwise, the placement is not legal
                         txtNotification.setText("Illegal placement!");
                     }
                 }
                 else
-                {
+                { //Otherwise the seleted tile is a special tile
                     if(specialRef.getCounterGame() < 3 && specialRef.getCounterRound() == 0)
-                    {
+                    { //if less than 3 special tiles have been used this game and no special tiles have been used this round
                         if(boardRef.addTile(placement.toString()))
-                        {
-                            makeBoardProper();
-                            specialRef.useSpecialTile(selected);
-                            setUpSpecialUI();
-                            selected = null;
+                        { //Add the placement to the player's board (if it is legal)
+                            makeBoardProper(); //reload the board
+                            specialRef.useSpecialTile(selected); //use the placed special tile
+                            setUpSpecialUI(); //reload the special tile UI
+                            selected = null; //clear selected and placement fields
                             placement = null;
                         }
                         else
-                        {
+                        { //Otherwise, the placement is not legal
                             txtNotification.setText("Illegal placement!");
                         }
                     }
                     else
-                    {
+                    { //Otherwise 3 special tile have been used this game or a special tile has been used this round.
                         txtNotification.setText((specialRef.getCounterRound() == 1)?
                                 "You can only use 1 special tile per round!":
                                 "You can only use 3 special tiles per game!");
@@ -581,6 +677,14 @@ public class Viewer extends Application {
         });
     }
 
+    /**
+     * This method reduces clutter in the setUpDiceUI() and setUpSpecialUI()
+     * methods. It takes two ImageView objects and returns a HBox with them
+     * in a row.
+     * @param imgOne
+     * @param imgTwo
+     * @return (HBox) A row with two ImageView objects
+     */
     private HBox setUpRow(ImageView imgOne, ImageView imgTwo)
     {
         HBox row = new HBox();
@@ -590,6 +694,14 @@ public class Viewer extends Application {
         return row;
     }
 
+    /**
+     * This method takes a Pane object (either a HBox or VBox) and formats it.
+     * This method reduces clutter in other methods and ensures the format is uniform throughout the game.
+     * @param controlBox
+     * @param color
+     * @param spacing
+     * @param border
+     */
     private void formatBox(Pane controlBox, Color color, double spacing, boolean border)
     {
         controlBox.setBackground(new Background(new BackgroundFill(color, null, null)));
@@ -616,6 +728,14 @@ public class Viewer extends Application {
         }
     }
 
+    /**
+     * This method takes a Text object and formats it. This method reduces clutter in
+     * other methods and ensures the format is uniform throughout the game.
+     * @param text
+     * @param size
+     * @param bold
+     * @param underline
+     */
     private void formatText(Text text, double size, boolean bold, boolean underline)
     {
         if(bold)
@@ -631,11 +751,19 @@ public class Viewer extends Application {
 
     }
 
+    /**
+     * This method takes a Button object and formats it. This method reduces clutter in
+     * other methods and ensures the format is uniform throughout the game.
+     * @param button
+     */
     private void formatButton(Button button)
     {
         button.setFont(Font.font("Garamond", FontWeight.BOLD, 14));
     }
 
+    /**
+     * This method sets up the board component of the game stage.
+     */
     private void setUpBoard()
     {
         GridPane northEdge = new GridPane();
@@ -645,7 +773,11 @@ public class Viewer extends Application {
         HBox middleContainer = new HBox(); //this container holds the center of the board configuration (east, boardProper and west)
         ImageView tile;
 
-        //make northEdge
+        /*
+        * The 'Edge' GridPanes hold the exit tiles for the board
+        * */
+
+        //Make the North Edge
         northEdge.setAlignment(Pos.CENTER);
         for(int i=0; i<9; i++)
         {
@@ -664,7 +796,7 @@ public class Viewer extends Application {
             northEdge.add(tile, i, 0);
         }
 
-        //make eastEdge
+        //Make the East Edge
         for(int i=0; i<7; i++)
         {
             if(i==1 || i==5)
@@ -682,7 +814,7 @@ public class Viewer extends Application {
             eastEdge.add(tile, 0, i);
         }
 
-        //make southEdge
+        //Make the South Edge
         southEdge.setAlignment(Pos.CENTER);
         for(int i=0; i<9; i++)
         {
@@ -701,7 +833,7 @@ public class Viewer extends Application {
             southEdge.add(tile, i, 0);
         }
 
-        //make westEdge
+        //Make the West Edge
         for(int i=0; i<7; i++)
         {
             if(i==1 || i==5)
@@ -719,7 +851,7 @@ public class Viewer extends Application {
             westEdge.add(tile, 0, i);
         }
 
-        //make boardProper
+        //Make the boardProper (with selectable tiles)
         makeBoardProper();
 
         //add to middle container
@@ -732,7 +864,10 @@ public class Viewer extends Application {
         boardContainer.setAlignment(Pos.CENTER);
     }
 
-     private void makeBoardProper()
+    /**
+     * This method loads the board proper (which contains tile placements).
+     */
+    private void makeBoardProper()
      {
          ImageView tile;
          for(int y=0; y<7; y++)
@@ -745,8 +880,8 @@ public class Viewer extends Application {
                  id.append(x);
 
                  if(gameMode != 'v' && boardRef.getPlacements().containsKey(id.toString()))
-                 { //there is a placement here
-                    tile = ImageHandler.getTileImage(boardRef.getTile(id.toString()));
+                 { //If the game mode is not 'Viewer' and there is a placement at these coordinates
+                    tile = ImageHandler.getTileImage(boardRef.getTile(id.toString())); //load the appropriate tile image
                  }
                  else
                  {
@@ -763,8 +898,9 @@ public class Viewer extends Application {
                  tile.setId(id.toString());
 
                  if(gameMode == 'v')
-                 {
-                     //layer the text over the image of the tile
+                 {//If the game mode is 'Viewer'
+
+                     //Show the coordinates of the tile
                      Text coordinates = new Text(id.toString());
                      StackPane layers = new StackPane();
                      layers.getChildren().addAll(tile, coordinates);
@@ -1013,7 +1149,7 @@ public class Viewer extends Application {
         tileContainer.getChildren().addAll(btnMenu, innerTileContainer);
     }
 
-    public void launchViewer(){
+    private void launchViewer(){
 
         boardData = new Board();
         boardProper = new GridPane();

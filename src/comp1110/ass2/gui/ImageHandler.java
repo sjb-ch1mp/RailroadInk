@@ -53,7 +53,7 @@ public class ImageHandler
         }
 
         if(tile.isSelected())
-        {
+        { //if a tile is selected, adjust the color of the image so the player knows it is selected
             ColorAdjust colorAdjust = new ColorAdjust();
             colorAdjust.setSaturation(0.3);
             img.setEffect(colorAdjust);

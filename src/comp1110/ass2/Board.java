@@ -235,7 +235,6 @@ public class Board
         return true;
     }
 
-
     /**
      * The edgesClash() method takes the coordinates of an adjacent tile and checks
      * whether there is a 'clash' between the two. There is a clash if both of the edges
@@ -379,34 +378,63 @@ public class Board
         return false;
     }
 
+    /**
+     * This method returns a boolean value depending upon whether
+     * the coordinates are an exit or not.
+     * @param coord
+     * @return boolean
+     */
     public boolean isExitCoord(String coord)
     {
         return exitCoords.containsKey(coord);
     }
 
+    /**
+     * This method returns the exit information about a given exit. Exit
+     * information is represented by a digraph, e.g. 'NH' says that the
+     * North edge of the tile placed here must be a Highway.
+     * @param coord
+     * @return (String) Exit information
+     */
     public String getExit(String coord)
     {
         return exitCoords.get(coord);
     }
 
+    /**
+     * Returns the placements HashMap
+     * @return (HashMap) placements
+     */
     public HashMap<String, Tile> getPlacements()
     {
         return placements;
     }
 
+    /**
+     * This method iterates the round counter by one.
+     */
     public void iterateRoundCounter()
     {
         roundCounter++;
     }
 
+    /**
+     * @return (int) The round counter.
+     */
     public int getRound()
     {
         return roundCounter;
     }
 
+    /**
+     * This method checks whether there are any legal moves remaining on the
+     * board and returns a boolean.
+     * @param diceData
+     * @return (boolean)
+     */
     public boolean legalMovesRemaining(Dices diceData)
     {
-        //set up test board
+        //This method uses a temporary test board so that the main board data is not affected
         Board testBoard = new Board();
         for(Map.Entry<String, Tile> mapEntry : placements.entrySet())
         {
@@ -440,6 +468,11 @@ public class Board
         return false;
     }
 
+    /**
+     * This method uses a ScoreCalculator object to calculate
+     * the score.
+     * @return (int) The score of the board
+     */
     public int calculateScore()
     {
         ScoreCalculator scoreCalculator = new ScoreCalculator(this);
@@ -453,6 +486,9 @@ public class Board
         return scoreCalculator.getAdvancedScore();
     }
 
+    /**
+     * @return (HashMap) The exit coordinates hash map.
+     */
     public HashMap<String, String> getExitCoords()
     {
         return exitCoords;

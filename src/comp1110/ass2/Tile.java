@@ -3,7 +3,7 @@ package comp1110.ass2;
 import java.util.HashMap;
 
 /**
- * The Tile enum makes it easier to handle and access Tile data and behaviour.
+ * The Tile class makes it easier to handle and access Tile data and behaviour.
  * A couple important aspects of Tile is that it will keep track of which edges
  * have which connections when changing the orientation, and will make it easier
  * to get the correct image of a Tile from assets.
@@ -114,21 +114,38 @@ public class Tile
         }
     }
 
+    /**
+     * @return (String) The identifier for the Tile object
+     */
     public String getId()
     {
         return id;
     }
 
+    /**
+     * @return (char) The row at which the tile has been placed on the board.
+     */
     public char getRow()
     {
         return row;
     }
 
+    /**
+     * @return (int) The column at which the tile has been placed on the board.
+     */
     public int getColumn()
     {
         return column;
     }
 
+    /**
+     * This method ensures that when the tests and directions HashMaps are being
+     * used in a loop within the ScoreCalculator class, that the correct value is
+     * being passed to the IntPredicate to test whether a given edge needs to be
+     * evaluated.
+     * @param i = the current iteration of the loop
+     * @return (int) Either the row or the column
+     */
     public int getTestValue(int i)
     {
         switch(i)
@@ -140,11 +157,17 @@ public class Tile
         }
     }
 
+    /**
+     * @return (String) The coordinates at which the tile has been placed
+     */
     public String getCoords()
     {
         return "" + row + column;
     }
 
+    /**
+     * @return (int) The orientation of the tile.
+     */
     public int getOrientation()
     {
         return orientation;
@@ -182,34 +205,51 @@ public class Tile
         edges[3] = constructors.get(id)[4];
     }
 
+    /**
+     * @return (char[]) The array of edges
+     */
     public char[] getEdges()
     {
         return edges;
     }
 
+    /**
+     * @return (boolean) Whether or not the tile is an overpass
+     */
     public boolean isOverPass()
     {
         return intersectionType == 'O';
     }
 
+    /**
+     * @return (boolean) Whether or not the tile is a station.
+     */
     public boolean isStation()
     {
         return intersectionType == 'S';
     }
 
+    /**
+     * This method adds coordinates to a tile object when it is placed on a board
+     * @param coords
+     */
     public void addCoordinates(String coords)
     {
-        //stores the coordinates for this tile when it is placed in the board - will help when compiling routes
-        //in the ScoreCalculator
         row = coords.charAt(0);
         column = Integer.parseInt(coords.substring(1));
     }
 
+    /**
+     * Changes the used value to true
+     */
     public void useTile()
     {
         used = true;
     }
 
+    /**
+     * @return (boolean) Whether or not a tile has been used
+     */
     public boolean isUsed()
     {
         return used;
@@ -247,21 +287,33 @@ public class Tile
         constructors.put("S5", new Character[]{'S', 'H', 'R', 'H', 'R'});
     }
 
+    /**
+     * @return (String) The fields of the Tile object as a valid placement string
+     */
     public String getPlacementString()
     {
         return id + row + column + orientation;
     }
 
+    /**
+     * Selects the tile (changes selected to true).
+     */
     public void selectTile()
     {
         selected = true;
     }
 
+    /**
+     * Deselects the tile (changes selected to false).
+     */
     public void deselectTile()
     {
         selected = false;
     }
 
+    /**
+     * @return (boolean) Whether or not the tile is selected
+     */
     public boolean isSelected()
     {
         return selected;

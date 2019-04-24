@@ -1,5 +1,9 @@
 package comp1110.ass2;
 
+/**
+ * The ComputerOpponent class will hold all player data for the computer opponent
+ * and handle all the behaviour of the computer opponent.
+ */
 public class ComputerOpponent
 {
 
@@ -10,6 +14,9 @@ public class ComputerOpponent
         this.playerData = playerData;
     }
 
+    /**
+     * The haveTurn() method will allow the computer opponent to have a turn.
+     */
     public void haveTurn()
     {
         System.out.println("Computer Opponent having turn"); //=====debug

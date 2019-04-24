@@ -105,6 +105,13 @@ public class Dices
         return diceString.toString();
     }
 
+    /**
+     * This method is used in multiplayer and computer opponent mode to
+     * ensure that both players are using the same dices every round. It takes the
+     * Dices object for player one and copies it's data to the Dices object
+     * of the other player, or the computer opponent.
+     * @param playerOneDiceData
+     */
     public void copyPlayerOneData(Dices playerOneDiceData)
     {
         String diceId;
@@ -117,6 +124,10 @@ public class Dices
         }
     }
 
+    /**
+     * This method deselects all dices so that when the DicesUI is reloaded
+     * there are no dice tiles selected.
+     */
     public void deselectAll()
     {
         dices.get("D1").deselectTile();

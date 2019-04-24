@@ -54,50 +54,48 @@ public class Placement
         column = Integer.parseInt(coords.substring(1));
     }
 
+    /**
+     * @return (String) The fields of the Placement object as a valid placement string
+     */
+    @Override
+    public String toString()
+    {
+        return "" + type + id + row + column + orientation;
+    }
+
+    /*
+    * Getter methods for the Placement class.
+    * */
     public char getType()
     {
         return type;
     }
-
     public char getId()
     {
         return id;
     }
-
     public String getFullId()
     {
         return "" + type + id;
     }
-
     public char getRow()
     {
         return row;
     }
-
     public int getRowAsInt()
     {
         return (int) row - 65;
     }
-
     public int getColumn()
     {
         return column;
     }
-
     public String getCoords()
     {
         return "" + row + column;
     }
-
     public int getOrientation()
     {
         return orientation;
-    }
-
-    @Override
-    public String toString()
-    {
-        //returns the fields as a valid placement string
-        return "" + type + id + row + column + orientation;
     }
 }
