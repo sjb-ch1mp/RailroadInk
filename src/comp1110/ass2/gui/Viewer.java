@@ -947,6 +947,7 @@ public class Viewer extends Application {
      */
     private void makePlacement(String placement) {
         // FIXME Task 4: implement the simple placement viewer
+        // Author: Samuel J. Brookes (u5380100)
 
         if(placement.length() > 5 && RailroadInk.isBoardStringWellFormed(placement))
         { //placement is a valid board string
