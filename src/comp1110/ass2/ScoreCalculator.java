@@ -168,7 +168,7 @@ public class ScoreCalculator
             { //For each RouteNode in a give route
                 if(board.isExitCoord(routeNode.data.getCoords()))
                 { //If the routeNode is at an exit coordinate
-                    if(routeNode.entry ==
+                    if(routeNode.entryType ==
                         board.getExitCoords().get(routeNode.data.getCoords()).charAt(1) &&
                             board.getExit(routeNode.data.getCoords()).charAt(1) ==
                                     routeNode.data.getEdge(board.getExit(routeNode.data.getCoords()).charAt(0)))
@@ -189,6 +189,15 @@ public class ScoreCalculator
             { //If the route connects at least 2 exits
                 networkScore += networkValues.get(exit);
             }
+
+            /* ========================== debug*/
+            for(RouteNode rn : route)
+            {
+                System.out.print(rn.data.getCoords() + " ");
+            }
+            System.out.println("Score: " + ((networkValues.get(exit) != null)?networkValues.get(exit):"0"));
+            /* ========================== debug*/
+
         }
 
         return networkScore;
@@ -214,6 +223,7 @@ public class ScoreCalculator
             { //If there is a tile at this exit coordinate and it is part of a route that has not been evaluated
 
                 ArrayList<RouteNode> route;
+
 
                 if(board.getPlacements().get(exit).getEdge(mapEntry.getValue().charAt(0)) ==
                     mapEntry.getValue().charAt(1))
@@ -251,9 +261,10 @@ public class ScoreCalculator
         ArrayList<RouteNode> route = new ArrayList<>(0);
         ArrayList<RouteNode> evaluated = new ArrayList<>(0);
         ArrayList<RouteNode> unevaluated = new ArrayList<>(0);
+        HashMap<String, RouteNode> overpasses = new HashMap<>(0);
 
         //Store the data for the starting tile as a RouteNode
-        RouteNode startNode = new RouteNode(board.getExit(startCoord).charAt(1), board.getTile(startCoord));
+        RouteNode startNode = new RouteNode(board.getExit(startCoord).charAt(0), board.getTile(startCoord));
 
         //Add it to the unevaluated ArrayList
         unevaluated.add(startNode);
@@ -264,67 +275,68 @@ public class ScoreCalculator
             //get the first unevaluated routeNode
             RouteNode routeNode = unevaluated.get(0);
 
+            //Variables for adjacent nodes
+            String adjCoords;
+            RouteNode adjRouteNode;
+
             //This loop uses the directions HashMap, the tests HashMap and the
             //getTestValue() method in conjunction to achieve an iterable edge check
-            for(int i=0; i<4; i++)
-            {
-                if(tests.get(i).test(routeNode.data.getTestValue(i)))
-                {
-                    char edge = directions.get(i); //the edge being evaluated
-                    char exit = routeNode.data.getEdge(edge); //the route type that exits the tile at this edge
-                    String adjCoords = board.getAdjCoords(edge, routeNode.data); //the coordinates of the adjacent tile at this edge
-                    RouteNode adjRouteNode;
-                    if(board.getPlacements().containsKey(adjCoords))
-                    { //If a tile exists at this edge...
 
-                        //Store it as a Route Node
-                        adjRouteNode = new RouteNode(board.getTile(adjCoords).getEdge(board.getOppositeEdge(edge)), board.getTile(adjCoords));
-
-                        if(!alreadyInArrayList(adjRouteNode, evaluated) && !alreadyInArrayList(adjRouteNode, unevaluated))
-                        {//If the adjacent route node is not already in the evaluated or unevaluated lists
-                            if(!routeNode.data.isOverPass())
-                            { //if the adjacent route node is not an over pass
-                                if(exit != '0' && exit == adjRouteNode.entry)
-                                { //If the exit from the current route node is not blank and it is the same as the entry to the
-                                    //adjacent route node
-
-                                    //add it to the unevaluated list
-                                    unevaluated.add(adjRouteNode);
-                                }
+            if(routeNode.data.isOverPass())
+            { //If the routeNode is an overpass, it needs only to check the opposite edge to the entry
+                char oppositeEdge = board.getOppositeEdge(routeNode.entryEdge);
+                adjCoords = board.getAdjCoords(oppositeEdge, routeNode.data);
+                if(board.getPlacements().containsKey(adjCoords))
+                { //If there is a placement on the opposite edge of the overpass
+                    adjRouteNode = new RouteNode(routeNode.entryEdge, board.getTile(adjCoords));
+                    if(!alreadyInArrayList(adjRouteNode, evaluated) && !alreadyInArrayList(adjRouteNode, unevaluated))
+                    { //If the adjRouteNode is not already in evaluated or unevaluated
+                        if(routeNode.entryType == adjRouteNode.entryType)
+                        { //If this is a valid connection (do not need to check for '0' because tile is an overpass)
+                            //(Also, can compare entry to entry because the exit is the same as the entry for overpasses)
+                            if(adjRouteNode.data.isOverPass())
+                            { //If the adjRouteNode is an overpass, add it to the appropriate list
+                                addOverpass(oppositeEdge, adjRouteNode, overpasses, unevaluated);
                             }
                             else
-                            { //The adjacent route node is an overpass
-                                if(routeNode.entry == adjRouteNode.entry)
-                                { //if the entry to the current route node is the same as the entry to the adjacent route node
-
-                                    //add it to the unevaluated list
-                                    unevaluated.add(adjRouteNode);
-                                }
+                            { //adjRouteNode is not an overpass, add it to unevaluated
+                                unevaluated.add(adjRouteNode);
                             }
                         }
-                        else
-                        { //the adjacent route node is in either the evaluated or the unevaluated list
-                            if(!routeNode.data.isOverPass() && adjRouteNode.data.isOverPass())
-                            { //If the current route node is NOT an overpass and the adjacent route node IS an overpass
+                    }
+                }
+            }
+            else
+            { //The routeNode is not an overpass, check all non-blank edges that are not the entry or at the edge of the board
+                for(int i=0; i<4; i++)
+                {
+                    if(routeNode.data.getEdge(directions.get(i)) != '0' &&      //If this edge is not blank
+                            directions.get(i) != routeNode.entryEdge &&         //...and this is not the entry to the node
+                            tests.get(i).test(routeNode.data.getTestValue(i)))  //...and the tile is not at the edge of the board
+                    {
 
-                                //Get the coordinates of the square on the other side of the adjacent overpass
-                                adjCoords = board.getAdjCoords(edge, adjRouteNode.data);
+                        char exitEdge = directions.get(i); //the exit from the tile
+                        char exitType = routeNode.data.getEdge(exitEdge); //the route type of the exit
+                        char oppositeEdge = board.getOppositeEdge(exitEdge); //this is the edge opposite the exit edge (i.e. the entry to the adj tile)
+                        adjCoords = board.getAdjCoords(exitEdge, routeNode.data); //the coordinates of the adjacent tile at this edge
 
-                                if(board.getPlacements().containsKey(adjCoords))
-                                { //If there is a placement on the other side of the overpass
+                        if(board.getPlacements().containsKey(adjCoords))
+                        { //If a tile exists at this edge...
 
-                                    //store it as a new adjacent route node
-                                    adjRouteNode = new RouteNode(board.getTile(adjCoords).getEdge(board.getOppositeEdge(edge)), board.getTile(adjCoords));
+                            //Store it as a Route Node
+                            adjRouteNode = new RouteNode(oppositeEdge, board.getTile(adjCoords));
 
-                                    if(!alreadyInArrayList(adjRouteNode, evaluated) && !alreadyInArrayList(adjRouteNode, unevaluated))
-                                    {//If the tile on the other side of the overpass is not in the evaluated or unevaluated lists
-                                        if(exit != '0' && exit == adjRouteNode.entry)
-                                        { //if the exit from the current route node is not blank and it is the same as the entry
-                                            //to the new adjacent route node
-
-                                            //add it to the unevaluated list
-                                            unevaluated.add(adjRouteNode);
-                                        }
+                            if(!alreadyInArrayList(adjRouteNode, evaluated) && !alreadyInArrayList(adjRouteNode, unevaluated))
+                            {//If the adjacent route node is not already in the evaluated or unevaluated lists
+                                if(exitType == adjRouteNode.entryType)
+                                { //If the exit from the current node matches the entry to the adjacent node
+                                    if(adjRouteNode.data.isOverPass())
+                                    { //If the adjRouteNode is an overpass, add it to the appropriate list
+                                        addOverpass(oppositeEdge, adjRouteNode, overpasses, unevaluated);
+                                    }
+                                    else
+                                    { //adjRouteNode is not an overpass, add it to unevaluated
+                                        unevaluated.add(adjRouteNode);
                                     }
                                 }
                             }
@@ -333,16 +345,64 @@ public class ScoreCalculator
                 }
             }
 
-            //remove routeNode from unevaluated
+            /*
+            * Overpasses must be processed differently to other nodes
+            * as they can be traversed twice. Only place them into evaluated
+            * once they have been checked twice, otherwise put them into
+            * overpasses.
+            * */
+
+            if(routeNode.data.isOverPass())
+            { //if the routeNode is an overpass
+
+                if(!routeNode.checked)
+                {
+                    routeNode.checked = true;
+                    overpasses.put(routeNode.data.getCoords(), routeNode);
+                    route.add(routeNode);
+                }
+                else
+                {
+                    evaluated.add(routeNode);
+                }
+            }
+            else
+            { //routeNode is not an overpass
+                evaluated.add(routeNode);
+                route.add(routeNode);
+            }
+
+            //Remove node from unevaluated
             unevaluated.remove(0);
 
-            //add routeNode to evaluated
-            evaluated.add(routeNode);
-
-            //add tile to route
-            route.add(routeNode);
         }
+
         return route;
+    }
+
+    /**
+     * This method checks whether an overpass route node has already been checked once (i.e. is
+     * is the overpasses HashMap). If it has, it revives it, changes its fields and puts it back in
+     * the unevaluated ArrayList. Otherwise, it simply adds it to the unevaluated ArrayList.
+     *
+     * @param newEntryEdge
+     * @param adjRouteNode
+     * @param overpasses
+     * @param unevaluated
+     */
+    private void addOverpass(char newEntryEdge, RouteNode adjRouteNode, HashMap<String, RouteNode> overpasses, ArrayList<RouteNode> unevaluated)
+    {
+        if(overpasses.containsKey(adjRouteNode.data.getCoords()))
+        { //If this overpass has already been checked once
+            RouteNode revivedOverpass = overpasses.remove(adjRouteNode.data.getCoords()); //revive it by removing it from overpasses
+            revivedOverpass.entryType = revivedOverpass.data.getEdge(newEntryEdge); //change the entry type to the new entry type
+            revivedOverpass.entryEdge = newEntryEdge; //change the entry edge to the new entry edge
+            unevaluated.add(revivedOverpass); //add it to unevaluated again
+        }
+        else
+        { //overpass has not yet been checked
+            unevaluated.add(adjRouteNode);
+        }
     }
 
     /**
@@ -464,13 +524,17 @@ public class ScoreCalculator
      */
     private class RouteNode
     {
-        char entry;
+        boolean checked;
+        char entryEdge;
+        char entryType;
         Tile data;
 
-        RouteNode(char entry, Tile data)
+        RouteNode(char entryEdge, Tile data)
         {
             this.data = data;
-            this.entry = entry;
+            this.entryEdge = entryEdge;
+            this.entryType = data.getEdge(entryEdge);
+            checked = false;
         }
     }
 }
