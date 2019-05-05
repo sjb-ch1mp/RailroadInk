@@ -9,6 +9,8 @@ import java.util.Map;
 /**
  * The Board class keeps of all placements on the board in a HashMap for easy access (by coordinate).
  * It also stores the coordinates for the centre tiles and the exit tiles (along with their exit type)
+ *
+ * @author Samuel J. Brookes (unless indicated otherwise)
  */
 
 public class Board
@@ -415,7 +417,10 @@ public class Board
      */
     public void iterateRoundCounter()
     {
-        roundCounter++;
+        if(roundCounter < 7)
+        {
+            roundCounter++;
+        }
     }
 
     /**
@@ -438,7 +443,7 @@ public class Board
         Board testBoard = new Board();
         for(Map.Entry<String, Tile> mapEntry : placements.entrySet())
         {
-            testBoard.addTile(mapEntry.getValue().getPlacementString());
+            testBoard.getPlacements().put(mapEntry.getKey(), mapEntry.getValue());
         }
 
         for(int i=1; i<=4; i++)
@@ -466,24 +471,6 @@ public class Board
             }
         }
         return false;
-    }
-
-    /**
-     * This method uses a ScoreCalculator object to calculate
-     * the score.
-     * @return (int) The score of the board
-     */
-    public int calculateScore()
-    {
-        ScoreCalculator scoreCalculator = new ScoreCalculator(this);
-
-        /*======================= debug*/
-        System.out.println("errors: " + scoreCalculator.getErrors());
-        System.out.println("network score: " + scoreCalculator.getNetworkScore());
-        System.out.println("center score: " + scoreCalculator.getCenterScore());
-        /*======================= debug*/
-
-        return scoreCalculator.getAdvancedScore();
     }
 
     /**

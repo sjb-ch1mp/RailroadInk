@@ -8,6 +8,8 @@ import comp1110.ass2.gui.SpecialTiles;
  * It holds a Board object, a Dices object and a SpecialTiles object for a single player.
  * The access for the data objects is public as they will only ever be accessed by the
  * Viewer class.
+ *
+ * @author Samuel J. Brookes (unless indicated otherwise)
  */
 public class PlayerData
 {
@@ -16,6 +18,7 @@ public class PlayerData
     public Board boardData;
     public Dices diceData;
     public SpecialTiles specialData;
+    public ScoreCalculator scoreCalculator;
 
     public PlayerData(int player, Board boardData, Dices diceData, SpecialTiles specialData)
     {
@@ -23,5 +26,10 @@ public class PlayerData
         this.boardData = boardData;
         this.diceData = diceData;
         this.specialData = specialData;
+    }
+
+    public void calculateScore()
+    {
+        scoreCalculator = new ScoreCalculator(boardData);
     }
 }

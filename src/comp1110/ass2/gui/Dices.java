@@ -12,6 +12,8 @@ import java.util.Random;
  * The Dices class keeps track of the tile information in the Dices sub-UI
  * It stores Tile information for each of the Dices in the game and handles the rotation
  * of the ImageView objects on the board.
+ *
+ * @author Samuel J. Brookes (unless indicated otherwise)
  */
 
 public class Dices

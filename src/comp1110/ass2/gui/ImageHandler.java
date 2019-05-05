@@ -11,6 +11,8 @@ import javafx.scene.transform.Rotate;
  * The ImageHandler class contains static methods that make it easier to
  * retrieve images from the assets folder for use as tiles in the UI.
  * Images are resized, rotated and returned as an ImageView object.
+ *
+ * @author Samuel J. Brookes (unless indicated otherwise)
  */
 
 public class ImageHandler

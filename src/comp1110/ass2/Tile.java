@@ -7,6 +7,8 @@ import java.util.HashMap;
  * A couple important aspects of Tile is that it will keep track of which edges
  * have which connections when changing the orientation, and will make it easier
  * to get the correct image of a Tile from assets.
+ *
+ * @author Samuel J. Brookes (unless indicated otherwise)
  */
 
 public class Tile

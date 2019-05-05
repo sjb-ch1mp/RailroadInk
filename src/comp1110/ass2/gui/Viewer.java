@@ -25,14 +25,14 @@ import javafx.scene.text.TextAlignment;
 import java.util.ArrayList;
 
 /**
- * A very simple viewer for tile placements in the Railroad Ink game.
- * <p>
- * NOTE: This class is separate from your main game class.  This
- * class does not play a game, it just illustrates various tile placements.
+ * The Viewer class has been modified to act as the main class for the game interface.
+ *
+ * @author Samuel J. Brookes (unless indicated otherwise)
  */
 public class Viewer extends Application {
 
     /* GAME ASSETS*/
+    private boolean gameFinished = false;
     private Stage gameStage;
     private static final int GAME_WIDTH = 1024;
     private static final int GAME_HEIGHT = 768;
@@ -128,10 +128,12 @@ public class Viewer extends Application {
             }
             else if(btnComputer.isSelected())
             {
-                //txtNotification.setText("Computer opponent under development");
+                txtNotification.setText("Computer opponent under development");
+                /*
                 gameMode = 'c';
                 player = 1;
                 launchGameStage();
+                */
             }
             else
             { //btnViewer is selected
@@ -172,8 +174,8 @@ public class Viewer extends Application {
                 playerData.put(1, new PlayerData(1, new Board(), new Dices(), new SpecialTiles()));
                 playerData.get(1).diceData.rollDice();
             }
-            else if(gameMode == 'm')
-            { //If two player, create two PlayerData objects
+            else
+            { //If two player (incl. computer opponent), create two PlayerData objects
                 playerData.put(1, new PlayerData(1, new Board(), new Dices(), new SpecialTiles()));
                 playerData.put(2, new PlayerData(2, new Board(), new Dices(), new SpecialTiles()));
 
@@ -182,19 +184,11 @@ public class Viewer extends Application {
 
                 //Copy the dice data into player two's PlayerData object
                 playerData.get(2).diceData.copyPlayerOneData(playerData.get(1).diceData);
-            }
-            else //gameMode == 'c'
-            { //If computer opponent is selected, create one PlayerData object
-                playerData.put(1, new PlayerData(1, new Board(), new Dices(), new SpecialTiles()));
 
-                //Roll the dice of player one
-                playerData.get(1).diceData.rollDice();
-
-                //Create a computerOpponent object and pass it a new PlayerData object
-                computerOpponent = new ComputerOpponent(new PlayerData(2, new Board(), new Dices(), new SpecialTiles()));
-
-                //Copy the dices of player one to the PlayerData of the computer opponent
-                computerOpponent.playerData.diceData.copyPlayerOneData(playerData.get(1).diceData);
+                if(gameMode == 'c')
+                { //add pointer to player data for computer opponent if gameMode is 'c'
+                    computerOpponent = new ComputerOpponent(playerData.get(2));
+                }
             }
         }
 
@@ -281,6 +275,8 @@ public class Viewer extends Application {
             else
             {
                 gameStage.close();
+                playerData = null;
+                gameFinished = false;
             }
             start(new Stage());
         });
@@ -417,7 +413,9 @@ public class Viewer extends Application {
                         if(btnRoll.getText().equals("End Game"))
                         {//If the roll button reads 'End Game'
                             //Calculate the scores, and launch the endGameStage to declare the winner
-
+                            gameFinished = true;
+                            btnRoll.setVisible(false); //set the roll button to invisible so the player cannot press it
+                            showScoreStage();
                         }
                         else
                         { //Otherwise, it is not yet the final round
@@ -447,12 +445,16 @@ public class Viewer extends Application {
                     { //If this is the last round
                         if(gameMode == 's')
                         { //Calculate the score and end the game
-                            txtNotification.setText("Well done! Your score is " + playerData.get(1).boardData.calculateScore());
+                            gameFinished = true;
                             btnRoll.setVisible(false); //set the roll button to invisible so the player cannot press it
+                            showScoreStage();
                         }
                         else
                         { //gameMode == 'c'
                             //Calculate the scores, and launch the endGameStage to declare the winner
+                            gameFinished = true;
+                            btnRoll.setVisible(false); //set the roll button to invisible so the player cannot press it
+                            showScoreStage();
                         }
                     }
                     else
@@ -564,7 +566,7 @@ public class Viewer extends Application {
         { //If this tile is the target of a mouse button click
 
             //If the tile image is 'invalid.png' - do nothing
-            if(tile.getImage().getUrl().contains("invalid.png")) return;
+            if(gameFinished || tile.getImage().getUrl().contains("invalid.png")) return;
 
             txtNotification.setText("");
 
@@ -627,7 +629,7 @@ public class Viewer extends Application {
         tile.setOnMouseClicked(ae ->
         {
             //If there is no placement to be made, do nothing
-            if(placement == null) return;
+            if(gameFinished || placement == null) return;
 
             if(ae.getButton().equals(MouseButton.PRIMARY))
             { //If the board tile is clicked with the left mouse button
@@ -916,6 +918,139 @@ public class Viewer extends Application {
                  }
              }
          }
+     }
+
+     private void showScoreStage()
+     {
+         Stage scoreStage = new Stage();
+         scoreStage.setTitle("Scores");
+         scoreStage.setResizable(false);
+         VBox root = new VBox();
+         Button btnMenu = new Button("Main Menu");
+         btnMenu.setOnAction(ae ->
+         {
+             scoreStage.close();
+             gameStage.close();
+             playerData = null;
+             gameFinished = false;
+             start(new Stage());
+         });
+         ImageView winImage;
+
+         //Set up appropriate scoreStage, depending upon gameMode
+         if(gameMode == 's')
+         {
+             VBox playerOneStats = getPlayerStats(1);
+             winImage = ImageHandler.getMiscTile("gameOver");
+             winImage.setFitHeight(100);
+             winImage.setFitWidth(550);
+
+             root.getChildren().addAll(winImage, playerOneStats, btnMenu);
+             root.setAlignment(Pos.CENTER);
+             formatBox(root, Color.LAVENDER, 10, false);
+         }
+         else if(gameMode == 'm')
+         {
+             HBox players = new HBox();
+             VBox playerOneStats = getPlayerStats(1);
+             VBox playerTwoStats = getPlayerStats(2);
+
+             Button showBoardPlayerOne = new Button("Show Board");
+             showBoardPlayerOne.setOnAction(ae ->
+             {
+                 player = 1;
+                 gameStage.close();
+                 launchGameStage();
+                 scoreStage.toFront();
+             });
+             playerOneStats.getChildren().add(showBoardPlayerOne);
+
+             Button showBoardPlayerTwo = new Button("Show Board");
+             showBoardPlayerTwo.setOnAction(ae ->
+             {
+                 player = 2;
+                 gameStage.close();
+                 launchGameStage();
+                 scoreStage.toFront();
+             });
+             playerTwoStats.getChildren().add(showBoardPlayerTwo);
+
+             players.getChildren().addAll(playerOneStats, playerTwoStats);
+             players.setAlignment(Pos.CENTER);
+             players.setSpacing(10);
+
+             if(playerData.get(1).scoreCalculator.getAdvancedScore() ==
+                     playerData.get(2).scoreCalculator.getAdvancedScore())
+             {
+                 winImage = ImageHandler.getMiscTile("draw");
+             }
+             else if(playerData.get(1).scoreCalculator.getAdvancedScore() >
+                     playerData.get(2).scoreCalculator.getAdvancedScore())
+             {
+                 winImage = ImageHandler.getMiscTile("player1Wins");
+             }
+             else
+             {
+                 winImage = ImageHandler.getMiscTile("player2Wins");
+             }
+             winImage.setFitHeight(100);
+             winImage.setFitWidth(550);
+
+             root.getChildren().addAll(winImage, players, btnMenu);
+             root.setAlignment(Pos.CENTER);
+             formatBox(root, Color.LAVENDER, 10, false);
+         }
+         else
+         { //gameMode == 'c'
+             HBox players = new HBox();
+             VBox playerOneScores = new VBox();
+             VBox computerOpponentScores = new VBox();
+
+
+         }
+
+         scoreStage.setScene(new Scene(root, GAME_WIDTH/1.5, GAME_HEIGHT/1.5));
+         scoreStage.show();
+     }
+
+     private VBox getPlayerStats(int playerNumber)
+     {
+         PlayerData player;
+         Text txtHeading;
+         if(playerNumber == -1)
+         { //player is computer
+             player = computerOpponent.playerData;
+             player.calculateScore();
+             txtHeading = new Text("Computer");
+         }
+         else
+         { //player is not computer
+             player = playerData.get(playerNumber);
+             player.calculateScore();
+             txtHeading = new Text("~ PLAYER " + playerNumber + " ~");
+         }
+
+         formatText(txtHeading, 20, true, true);
+         Text txtCenterScore = new Text("Center Score: " + player.scoreCalculator.getCenterScore());
+         formatText(txtCenterScore, 18, false, false);
+         Text txtNetworkScore = new Text("Network Score: " + player.scoreCalculator.getNetworkScore());
+         formatText(txtNetworkScore, 18, false, false);
+         Text txtErrors = new Text("Number of Errors: " + player.scoreCalculator.getErrors());
+         formatText(txtErrors, 18, false, false);
+         Text txtRailroad = new Text("Longest Railroad: " + player.scoreCalculator.getLongestRailroad());
+         formatText(txtRailroad, 18, false, false);
+         Text txtHighway = new Text("Longest Highway: " + player.scoreCalculator.getLongestHighway());
+         formatText(txtHighway, 18, false, false);
+         Text txtTotalScore = new Text("SCORE: " + player.scoreCalculator.getAdvancedScore());
+         formatText(txtTotalScore, 18, true, false);
+
+         VBox playerStats = new VBox();
+         playerStats.getChildren().addAll(txtHeading, txtCenterScore, txtNetworkScore, txtErrors, txtRailroad, txtHighway, txtTotalScore);
+         playerStats.setAlignment(Pos.CENTER);
+
+         formatBox(playerStats, Color.LIGHTBLUE, 10, true);
+
+         return playerStats;
      }
 
 

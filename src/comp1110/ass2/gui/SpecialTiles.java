@@ -9,6 +9,8 @@ import java.util.Map;
  * The SpecialTiles class keeps track of the tile information in the special tiles sub-UI.
  * It stores Tile information for each of the Special Tiles in a given game and handles the rotation
  * of the ImageView objects on the board.
+ *
+ * @author Samuel J. Brookes (unless indicated otherwise)
  */
 
 public class SpecialTiles

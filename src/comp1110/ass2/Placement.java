@@ -2,6 +2,8 @@ package comp1110.ass2;
 
 /**
  * The Placement class makes it easier to handle placement data.
+ *
+ * @author Samuel J. Brookes (unless indicated otherwise)
  */
 public class Placement
 {

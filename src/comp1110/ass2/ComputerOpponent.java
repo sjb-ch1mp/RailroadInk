@@ -3,6 +3,8 @@ package comp1110.ass2;
 /**
  * The ComputerOpponent class will hold all player data for the computer opponent
  * and handle all the behaviour of the computer opponent.
+ *
+ * @author Samuel J. Brookes (unless indicated otherwise)
  */
 public class ComputerOpponent
 {

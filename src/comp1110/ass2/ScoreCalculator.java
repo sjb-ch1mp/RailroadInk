@@ -15,6 +15,8 @@ import java.util.function.IntPredicate;
  *  Fourth, evaluate each route separately by counting the exits that it connects to and getting adding the network value to the score.
  *  Fifth, evaluate each route separately to find the longest highway.
  *  Sixth, evaluate each route separately to find the longest railway.
+ *
+ *  @author Samuel J. Brookes (unless indicated otherwise)
  */
 public class ScoreCalculator
 {
@@ -189,14 +191,6 @@ public class ScoreCalculator
             { //If the route connects at least 2 exits
                 networkScore += networkValues.get(exit);
             }
-
-            /* ========================== debug*/
-            for(RouteNode rn : route)
-            {
-                System.out.print(rn.data.getCoords() + " ");
-            }
-            System.out.println("Score: " + ((networkValues.get(exit) != null)?networkValues.get(exit):"0"));
-            /* ========================== debug*/
 
         }
 
@@ -406,6 +400,15 @@ public class ScoreCalculator
     }
 
     /**
+     * This method searches for the starting point of a free hanging route and then calls getRoute to compile it.
+     * @return (ArrayList) An ArrayList of RouteNodes
+     */
+    private ArrayList<RouteNode> compileFreeHangingRoute()
+    {
+        return null;
+    }
+
+    /**
      * This method checks whether a RouteNode is stored in either the evaluated
      * or unevaluated lists.
      * @param routeNode
@@ -536,5 +539,17 @@ public class ScoreCalculator
             this.entryType = data.getEdge(entryEdge);
             checked = false;
         }
+    }
+
+    /**
+     * This method returns the number of routes on the board
+     * @return (int) number of routes on the board
+     */
+    public int getNumberOfRoutes()
+    {
+        /*
+        * Need to include free hanging routes somehow
+        * */
+        return routes.size();
     }
 }
