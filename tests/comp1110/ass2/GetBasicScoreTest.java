@@ -36,6 +36,26 @@ public class GetBasicScoreTest {
     String ex3 = "A1A30A0B30A5A11B1B20S4A23";
 
     // TODO remove incomplete games (there's no requirement to score an incomplete game)
+    @Test
+    public void testNone() {
+        int score = RailroadInk.getBasicScore(null);
+        assertNotNull(score);
+    }
+
+    @Test
+    public void testEmpty() {
+        int score = RailroadInk.getBasicScore("");
+        assertNotNull(score);
+
+    }
+
+    @Test
+    public void testImpossibleBoard() {
+        int score = RailroadInk.getBasicScore("A4A50A0B61A3B52B1A35S0B41A1B31A0B22B2C50S1C44A1D40A1E40B2F41A0C27S4F50B0G52A2C30A2D32A1D21S2F30");
+        assertNotNull(score);
+
+    }
+
 
     @Test
     public void testSmallNoRoutes() {
