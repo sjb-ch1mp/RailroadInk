@@ -137,4 +137,39 @@ public class Dices
         dices.get("D3").deselectTile();
         dices.get("D4").deselectTile();
     }
+
+    /**
+     * This method is a debugging method used for the BoardTest class. It forces
+     * the dices to be all of a given route type.
+     *
+     * THIS METHOD IS NOT TO BE USED AT ANY TIME IN THE GAME!!
+     * THIS METHOD IS NOT TO BE USED AT ANY TIME IN THE GAME!!
+     * THIS METHOD IS NOT TO BE USED AT ANY TIME IN THE GAME!!
+     * THIS METHOD IS NOT TO BE USED AT ANY TIME IN THE GAME!!
+     *
+     * @param type (char) the route type (R or H)
+     */
+    public void forceType(char type)
+    {
+        switch(type)
+        {
+            case 'R':
+            {
+                dices = new HashMap<>(0);
+                dices.put("D1", new Tile("A1"));
+                dices.put("D2", new Tile("A1"));
+                dices.put("D3", new Tile("A1"));
+                dices.put("D4", new Tile("A1"));
+                break;
+            }
+            default:
+            {
+                dices = new HashMap<>(0);
+                dices.put("D1", new Tile("A4"));
+                dices.put("D2", new Tile("A4"));
+                dices.put("D3", new Tile("A4"));
+                dices.put("D4", new Tile("A4"));
+            }
+        }
+    }
 }

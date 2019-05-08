@@ -21,11 +21,16 @@ public class RouteCompilerTest
     * COMPLETED_GAMES[5] = 3 Routes (one free hanging)
     * */
 
-    private static final int[] numberOfRoutes = {2, 2, 2, 4, 4, 3};
+    private static final int[] numberOfRoutes = {2, 2, 2, 4, 4, 3}; //counted by eye
 
     @Test
     public void correctNumberOfRoutes()
     {
+        /*
+        * This tests whether the getRoute() and compileRoutes() methods are working as expected.
+        * The number of routes compiled should equal the number of routes counted by eye.
+        * */
+
         for(int i=0; i<SampleGames.COMPLETED_GAMES.length; i++)
         {
             String game = SampleGames.COMPLETED_GAMES[i];
