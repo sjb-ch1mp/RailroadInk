@@ -318,11 +318,18 @@ public class RailroadInk
      * @param boardString a board string representing a completed game
      * @return integer (positive or negative) for score *not* considering longest rail/highway
      */
-    public static int getBasicScore(String boardString) {
-        // FIXME Task 8: compute the basic score
-        return -1;
+    public static int getBasicScore(String boardString)
+{
+    Board board = new Board();
+    for(int i=0; i<boardString.length()-1; i+=5)
+    {
+        board.addTile(boardString.substring(i, i+5));
     }
 
+    ScoreCalculator sc = new ScoreCalculator(board);
+    return sc.getBasicScore();
+
+}// only one test not passed, will debug it later.
     /**
      * Given a valid boardString and a dice roll for the round,
      * return a String representing an ordered sequence of valid piece placements for the round.
