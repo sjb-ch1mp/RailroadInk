@@ -1,5 +1,7 @@
 package comp1110.ass2;
 
+import comp1110.ass2.gui.Dices;
+
 /**
  * The Placement class makes it easier to handle placement data.
  *
@@ -21,7 +23,6 @@ public class Placement
     public Placement(String placementString)
     {
         //constructs a placement from a placementString
-        type = placementString.charAt(0);
         type = placementString.charAt(0);
         id = placementString.charAt(1);
         row = placementString.charAt(2);
@@ -100,4 +101,6 @@ public class Placement
     {
         return orientation;
     }
+
+
 }

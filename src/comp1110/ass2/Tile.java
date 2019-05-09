@@ -320,4 +320,9 @@ public class Tile
     {
         return selected;
     }
+
+    public char getType()
+    {
+        return getType();
+    }
 }
