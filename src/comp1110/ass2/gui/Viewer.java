@@ -1044,8 +1044,26 @@ public class Viewer extends Application {
          Text txtTotalScore = new Text("SCORE: " + player.scoreCalculator.getAdvancedScore());
          formatText(txtTotalScore, 18, true, false);
 
+         TextField txtBoardString = new TextField();
+         txtBoardString.setVisible(false);
+         Button btnBoardString = new Button("Show Board String");
+         btnBoardString.setOnAction(ae ->
+         {
+             if(btnBoardString.getText().equals("Show Board String"))
+             {
+                 txtBoardString.setVisible(true);
+                 txtBoardString.setText(playerData.get(playerNumber).boardData.toString());
+                 btnBoardString.setText("Hide Board String");
+             }
+             else
+             {
+                 txtBoardString.setVisible(false);
+                 btnBoardString.setText("Show Board String");
+             }
+         });
+
          VBox playerStats = new VBox();
-         playerStats.getChildren().addAll(txtHeading, txtCenterScore, txtNetworkScore, txtErrors, txtRailroad, txtHighway, txtTotalScore);
+         playerStats.getChildren().addAll(txtHeading, txtCenterScore, txtNetworkScore, txtErrors, txtRailroad, txtHighway, txtTotalScore, btnBoardString, txtBoardString);
          playerStats.setAlignment(Pos.CENTER);
 
          formatBox(playerStats, Color.LIGHTBLUE, 10, true);

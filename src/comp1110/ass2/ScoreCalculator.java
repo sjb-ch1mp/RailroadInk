@@ -224,7 +224,7 @@ public class ScoreCalculator
                 { //If the start point of the route is a valid connection
 
                     //gather all the placements in this route
-                    route = getRoute(exit);
+                    route = getRoute(exit, false);
 
                     //add evaluated exits to usedExits
                     for(RouteNode routeNode : route)
@@ -238,7 +238,39 @@ public class ScoreCalculator
                     routes.add(route);
                 }
             }
+        }
 
+        /*
+         * Search for 'hanging' routes
+         * These are routes that are not connected to any exit,
+         * but exist due to a connection with an overpass.
+         * While they do not contribute to the network score, they
+         * need to be evaluated for the longest highway/railroad
+         * score.
+         * */
+        for(Map.Entry<String, Tile> placement : board.getPlacements().entrySet())
+        {//For each placement on the board
+            boolean placementExists = false;
+            for (ArrayList<RouteNode> route : routes)
+            {//For each route
+                for (RouteNode routeNode : route)
+                {//For each routeNode
+                    if (routeNode.data.getCoords().equals(placement.getKey()))
+                    {
+                        placementExists = true;
+                        break;
+                    }
+
+                }
+            }
+            if (!placementExists)
+            {//This placement is not included in any route - therefore it is part of a 'hanging' route
+                ArrayList<RouteNode> hangingRoute = getRoute(placement.getKey(), true);
+                if(hangingRoute != null)
+                {
+                    routes.add(hangingRoute);
+                }
+            }
         }
         return routes;
     }
@@ -250,15 +282,31 @@ public class ScoreCalculator
      * @param startCoord
      * @return (ArrayList) A route.
      */
-    private ArrayList<RouteNode> getRoute(String startCoord)
+    private ArrayList<RouteNode> getRoute(String startCoord, boolean freeHanging)
     {
         ArrayList<RouteNode> route = new ArrayList<>(0);
         ArrayList<RouteNode> evaluated = new ArrayList<>(0);
         ArrayList<RouteNode> unevaluated = new ArrayList<>(0);
         HashMap<String, RouteNode> overpasses = new HashMap<>(0);
 
-        //Store the data for the starting tile as a RouteNode
-        RouteNode startNode = new RouteNode(board.getExit(startCoord).charAt(0), board.getTile(startCoord));
+        RouteNode startNode;
+        if(!freeHanging)
+        { //if this is not a free hanging tile
+            //Store the data for the starting tile as a RouteNode
+            startNode = new RouteNode(board.getExit(startCoord).charAt(0), board.getTile(startCoord));
+        }
+        else
+        {
+            char startEdge = getStartEdgeForHanging(startCoord);
+            if(startEdge != 'x')
+            {
+                startNode = new RouteNode(startEdge, board.getTile(startCoord));
+            }
+            else
+            {
+                return null;
+            }
+        }
 
         //Add it to the unevaluated ArrayList
         unevaluated.add(startNode);
@@ -375,6 +423,34 @@ public class ScoreCalculator
     }
 
     /**
+     * This method searches for a blank edge that can start as an
+     * entry to a free hanging route node, in the same way that an entry
+     * onto the board acts for a non-hanging node.
+     *
+     * @param coords
+     * @return
+     */
+    private char getStartEdgeForHanging(String coords)
+    {
+        char startEdge = 'x';
+        Tile hangingTile = board.getTile(coords);
+
+        for(int i=0; i<4; i++)
+        {
+            if(tests.get(i).test(hangingTile.getTestValue(i)))
+            {
+                String adjCoords = board.getAdjCoords(directions.get(i), hangingTile);
+                if(errorAtEdge(hangingTile, directions.get(i)))
+                {
+                    return directions.get(i);
+                }
+            }
+        }
+
+        return startEdge;
+    }
+
+    /**
      * This method checks whether an overpass route node has already been checked once (i.e. is
      * is the overpasses HashMap). If it has, it revives it, changes its fields and puts it back in
      * the unevaluated ArrayList. Otherwise, it simply adds it to the unevaluated ArrayList.
@@ -397,15 +473,6 @@ public class ScoreCalculator
         { //overpass has not yet been checked
             unevaluated.add(adjRouteNode);
         }
-    }
-
-    /**
-     * This method searches for the starting point of a free hanging route and then calls getRoute to compile it.
-     * @return (ArrayList) An ArrayList of RouteNodes
-     */
-    private ArrayList<RouteNode> compileFreeHangingRoute()
-    {
-        return null;
     }
 
     /**
