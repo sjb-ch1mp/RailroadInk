@@ -312,7 +312,7 @@ public class Viewer extends Application {
      */
     private void setUpGameInfo()
     {
-        Text txtPlayer = new Text("~ Player " + player + " ~");
+        Text txtPlayer = new Text((gameMode == 'c' && player == 2)?"~ Computer ~":"~ Player " + player + " ~");
         formatText(txtPlayer, 30, true, false);
         txtRound = new Text("~ Round " + boardRef.getRound() + " ~");
         formatText(txtRound, 30, true, false);
@@ -391,7 +391,7 @@ public class Viewer extends Application {
         }
         else
         {
-            btnRoll = new Button((boardRef.getRound() == 7)?"End Game":"End Turn");
+            btnRoll = new Button("End Turn");
         }
         formatButton(btnRoll);
 
@@ -451,6 +451,46 @@ public class Viewer extends Application {
             { //If the game mode is single player or computer opponent
                 if(!boardRef.legalMovesRemaining(diceRef))
                 { //If there are no more legal moves this round
+
+                    if(gameMode == 's')
+                    {
+                        if(btnRoll.getText().equals("End Game"))
+                        { //this is the last round
+                            gameFinished = true;
+                            btnRoll.setVisible(false);
+                            showScoreStage();
+                        }
+                        else
+                        {
+                            boardRef.iterateRoundCounter(); //iterate player one's round counter
+                            specialRef.resetCounterRound(); //reset the specials-used-this-round counter
+                            diceRef.rollDice(); //roll the dice
+                            setUpDiceUI(); //reload the dice UI
+                            txtRound.setText("~ Round " + boardRef.getRound() + " ~"); //update the round notifier
+                        }
+                    }
+                    else
+                    { //gameMode == 'c'
+                        if(boardRef.getRound() == 7)
+                        { //this is the last turn
+                            gameFinished = true;
+                            btnRoll.setVisible(false);
+                            computerOpponentHaveTurn(true);
+                        }
+                        else
+                        { //this is not the last turn
+                            computerOpponentHaveTurn(false);
+                            gameStage.hide();
+                            boardRef.iterateRoundCounter(); //iterate player one's round counter
+                            specialRef.resetCounterRound(); //reset the specials-used-this-round counter
+                            diceRef.rollDice(); //roll the dice
+                            computerOpponent.playerData.diceData.copyPlayerOneData(diceRef);
+                            setUpDiceUI(); //reload the dice UI
+                            txtRound.setText("~ Round " + boardRef.getRound() + " ~"); //update the round notifier
+                        }
+                    }
+
+                    /*
                     if(btnRoll.getText().equals("End Game"))
                     { //If this is the last round
                         if(gameMode == 's')
@@ -462,11 +502,13 @@ public class Viewer extends Application {
                         else
                         { //gameMode == 'c'
                             //Calculate the scores, and launch the endGameStage to declare the winner
+                            computerOpponentHaveTurn(true);
                             gameFinished = true;
                             btnRoll.setVisible(false); //set the roll button to invisible so the player cannot press it
                             showScoreStage();
                         }
                     }
+
                     else
                     { //Otherwise it is not the last round
                         if(gameMode == 'c')
@@ -474,7 +516,7 @@ public class Viewer extends Application {
 
                             //Everything to do with having a turn (e.g. round counters, tracking specials, etc)
                             //should be handled within the computer opponent class
-                            computerOpponentHaveTurn();
+                            computerOpponentHaveTurn(false);
                             gameStage.hide();
                         }
 
@@ -490,6 +532,7 @@ public class Viewer extends Application {
                         setUpDiceUI(); //reload the dice UI
                         txtRound.setText("~ Round " + boardRef.getRound() + " ~"); //update the round notifier
                     }
+                    */
                 }
                 else
                 { //Otherwise there are still legal moves that can be made
@@ -1082,7 +1125,7 @@ public class Viewer extends Application {
          return playerStats;
      }
 
-    private void computerOpponentHaveTurn()
+    private void computerOpponentHaveTurn(boolean lastRound)
     {
         gameStage.hide();
 
@@ -1094,12 +1137,26 @@ public class Viewer extends Application {
         ImageView computer = ImageHandler.getMiscTile("thinking");
         computer.setFitHeight(GAME_HEIGHT - 280);
         computer.setFitWidth(GAME_WIDTH - 200);
-        Button btnContinue = new Button("Press to Continue...");
-        btnContinue.setOnAction(ae ->
+        Button btnContinue;
+        if(lastRound)
         {
-            computerStage.close();
-            gameStage.show();
-        });
+            btnContinue = new Button("End Game...");
+            btnContinue.setOnAction(ae ->
+            {
+                computerStage.close();
+                gameStage.show();
+                showScoreStage();
+            });
+        }
+        else
+        {
+            btnContinue = new Button("Press to Continue...");
+            btnContinue.setOnAction(ae ->
+            {
+                computerStage.close();
+                gameStage.show();
+            });
+        }
         btnContinue.setVisible(false);
         computerOpponent.haveTurn(btnContinue);
 

@@ -1,8 +1,9 @@
 package comp1110.ass2;
 
+import comp1110.ass2.gui.Dices;
+import comp1110.ass2.gui.SpecialTiles;
 import javafx.scene.control.Button;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -142,5 +143,26 @@ public class ComputerOpponent
             }
         }
         return testBoard;
+    }
+
+    private Dices buildTestDice()
+    {
+        Dices testDice = new Dices();
+        testDice.copyPlayerOneData(playerData.diceData);
+        return testDice;
+    }
+
+    private SpecialTiles buildTestSpecials()
+    {
+        SpecialTiles testSpecials = new SpecialTiles();
+        for(int i=1; i<=4; i++)
+        {
+            String id = "S" + i;
+            if(playerData.specialData.getSpecialTile(id).isUsed())
+            {
+                testSpecials.useSpecialTile(id);
+            }
+        }
+        return testSpecials;
     }
 }
