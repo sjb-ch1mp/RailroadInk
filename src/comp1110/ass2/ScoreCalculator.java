@@ -68,12 +68,6 @@ public class ScoreCalculator
         this.board = board;
         routes = compileRoutes(); //compile all the routes on the board
 
-        /*
-        * Might need to also create a list of 'free hanging' tile (i.e. tiles that are part of a route that
-        * does not connect to an exit and therefore are never evaluated as part of a route, see game for example:
-        * A4G10B2F10A4E10A0F20A3D17A0E22A2E31B1E44S0D42A3D23A4D31A2F30B1F42A1G30A0C42A0C57B0C22A2F03A1E02S5D01A0B22B0A50A4D51A3D61B2B53A0B30B2A31A4E60A3A41A0B03)
-        * */
-
         centerScore = countCenterSquares();
         errors = countErrors();
         networkScore = calculateNetworkScore();
@@ -484,9 +478,9 @@ public class ScoreCalculator
      */
     private boolean alreadyInArrayList(RouteNode routeNode, ArrayList<RouteNode> arrayList)
     {
-        for(RouteNode evaluatedNode : arrayList)
+        for(RouteNode listNode : arrayList)
         {
-            if(evaluatedNode.data.getCoords().equals(routeNode.data.getCoords()))
+            if(listNode.data.getCoords().equals(routeNode.data.getCoords()))
             {
                 return true;
             }
