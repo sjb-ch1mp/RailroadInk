@@ -350,12 +350,24 @@ public class RailroadInk
      * * Longest railroad
      * * Longest highway
      *
+     * @author Samuel J. Brookes
      * @param boardString a board string representing a completed game
      * @return integer (positive or negative) for final score (not counting expansion packs)
      */
     public static int getAdvancedScore(String boardString) {
         // FIXME Task 12: compute the total score including bonus points
-        return -1;
+
+        /* ========================= FIXME*/System.out.println("Game: " + boardString);
+
+        Board board = new Board();
+        for(int i=0; i<boardString.length(); i+=5)
+        {
+            board.addTile(boardString.substring(i, i+5));
+        }
+
+        ScoreCalculator sc = new ScoreCalculator(board);
+
+        return sc.getAdvancedScore();
     }
 
 }

@@ -1176,6 +1176,7 @@ public class Viewer extends Application {
     private static final int VIEWER_WIDTH = 1024;
     private static final int VIEWER_HEIGHT = 768;
 
+    private String savedGame;
     private Stage viewerStage;
     private Board boardData = null; //This Board object stores tiles when the rules are applied
     private VBox tileContainer; //Contains the columns of tiles
@@ -1304,12 +1305,14 @@ public class Viewer extends Application {
     private void makeControls() {
         Text label1 = new Text("Placement:");
         formatText(label1, 18, true, false);
-        Button button = new Button("Refresh");
-        formatButton(button);
+        Button btnRefresh = new Button("Refresh");
+        Button btnScore = new Button("Calculate Score");
+        formatButton(btnRefresh);
+        formatButton(btnScore);
         textField = new TextField();
         textField.setPrefWidth(300);
 
-        button.setOnAction(e -> {
+        btnRefresh.setOnAction(e -> {
             textWarning.setText(""); //refresh the warning text
             if(textField.getText().equals(""))
             {
@@ -1318,7 +1321,25 @@ public class Viewer extends Application {
             else
             { //otherwise, do an unchecked placement
                 makePlacement(textField.getText());
+                savedGame = textField.getText();
+                System.out.println("Saved game = " + savedGame);
                 textField.clear();
+            }
+        });
+
+        btnScore.setOnAction(ae ->
+        {
+            if(savedGame != null)
+            {
+                Board board = new Board();
+                for(int i=0; i<savedGame.length(); i+=5)
+                {
+                    board.addTile(savedGame.substring(i, i+5));
+                }
+                ScoreCalculator sc = new ScoreCalculator(board);
+                textWarning.setText("Score: " + sc.getNetworkScore() + " (network) + " +
+                        sc.getCenterScore() + " (center) + " + sc.getLongestHighway() + " (highway) + " + sc.getLongestRailroad() +
+                        " (railroad) - " + sc.getErrors() + " (errors) = " + sc.getAdvancedScore());
             }
         });
 
@@ -1327,12 +1348,12 @@ public class Viewer extends Application {
             KeyCode key = ae.getCode();
             if(key == KeyCode.ENTER)
             { //if enter is pressed within the text field, the user is finished typing
-                button.fire();
+                btnRefresh.fire();
             }
         });
 
         HBox hb = new HBox();
-        hb.getChildren().addAll(label1, textField, button);
+        hb.getChildren().addAll(label1, textField, btnRefresh, btnScore);
         hb.setSpacing(10);
         hb.setLayoutX(130);
         hb.setLayoutY(VIEWER_HEIGHT - 50);

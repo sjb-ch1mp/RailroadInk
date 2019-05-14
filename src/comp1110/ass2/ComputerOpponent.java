@@ -15,7 +15,13 @@ import java.util.Map;
  */
 public class ComputerOpponent
 {
-
+    /*
+    *
+    * NEED TO WRITE AN ORIENTATION CORRECTING METHOD WHERE ALL EQUIVALENT ORIENTATIONS ARE CHANGED
+    * TO THE LOWEST
+    *
+    *
+    * */
     public PlayerData playerData;
 
     public ComputerOpponent(PlayerData playerData)
