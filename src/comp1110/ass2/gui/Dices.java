@@ -37,6 +37,19 @@ public class Dices
     }
 
     /**
+     * This is an overloaded constructor that can build a Dices object from a diceRoll string
+     * @param diceRoll
+     */
+    public Dices(String diceRoll)
+    {
+        dices = new HashMap<>(0);
+        dices.put("D1", new Tile(diceRoll.substring(0, 2)));
+        dices.put("D2", new Tile(diceRoll.substring(2, 4)));
+        dices.put("D3", new Tile(diceRoll.substring(4, 6)));
+        dices.put("D4", new Tile(diceRoll.substring(6)));
+    }
+
+    /**
      * The rollDice() method updates the Tiles in the dices HashMap with 3
      * randomly selected Tiles from the A type and one randomly selected
      * Tile from the B type. It also refreshes the diceCounter field.

@@ -37,7 +37,7 @@ public class GetBasicScoreTest {
     String ex3 = "A1A30A0B30A5A11B1B20S4A23";
 
     // TODO remove incomplete games (there's no requirement to score an incomplete game)
-    @Test
+    @Test (expected = NullPointerException.class)
     public void testNone() {
         int score = RailroadInk.getBasicScore(null);
         assertNotNull(score);

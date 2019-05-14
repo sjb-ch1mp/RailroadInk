@@ -34,6 +34,7 @@ public class Viewer extends Application {
     /* GAME ASSETS*/
     private boolean gameFinished = false;
     private Stage gameStage;
+    private Stage scoreStage;
     private static final int GAME_WIDTH = 1024;
     private static final int GAME_HEIGHT = 768;
     private Text txtRound;
@@ -128,12 +129,10 @@ public class Viewer extends Application {
             }
             else if(btnComputer.isSelected())
             {
-                txtNotification.setText("Computer opponent under development");
-                /*
+                //txtNotification.setText("Computer opponent under development");
                 gameMode = 'c';
                 player = 1;
                 launchGameStage();
-                */
             }
             else
             { //btnViewer is selected
@@ -274,7 +273,14 @@ public class Viewer extends Application {
             }
             else
             {
+                if(scoreStage != null)
+                {
+                    scoreStage.close();
+                    scoreStage = null;
+                }
                 gameStage.close();
+                gameStage = null;
+
                 playerData = null;
                 gameFinished = false;
             }
@@ -306,7 +312,7 @@ public class Viewer extends Application {
      */
     private void setUpGameInfo()
     {
-        Text txtPlayer = new Text("~ Player " + player + " ~");
+        Text txtPlayer = new Text((gameMode == 'c' && player == 2)?"~ Computer ~":"~ Player " + player + " ~");
         formatText(txtPlayer, 30, true, false);
         txtRound = new Text("~ Round " + boardRef.getRound() + " ~");
         formatText(txtRound, 30, true, false);
@@ -366,13 +372,13 @@ public class Viewer extends Application {
         * which round the game is up to, or whether it is multiplayer.
         * */
         Button btnRoll;
-        if(gameMode == 's' || gameMode == 'c')
+        if(gameMode == 's')
         { //If the game is single player or computer opponent
 
             //Set the roll button text to end game if it's round 7, otherwise set it to roll
             btnRoll = new Button((boardRef.getRound() == 7)?"End Game":"Roll");
         }
-        else
+        else if(gameMode == 'm')
         {
             if(player == 1)
             { //In two player mode, player one's roll button always reads 'End Turn'
@@ -382,6 +388,10 @@ public class Viewer extends Application {
             { //The End Game text is only shown on player two's button if it is round 7
                 btnRoll = new Button((boardRef.getRound() == 7)?"End Game":"End Turn");
             }
+        }
+        else
+        {
+            btnRoll = new Button("End Turn");
         }
         formatButton(btnRoll);
 
@@ -441,6 +451,46 @@ public class Viewer extends Application {
             { //If the game mode is single player or computer opponent
                 if(!boardRef.legalMovesRemaining(diceRef))
                 { //If there are no more legal moves this round
+
+                    if(gameMode == 's')
+                    {
+                        if(btnRoll.getText().equals("End Game"))
+                        { //this is the last round
+                            gameFinished = true;
+                            btnRoll.setVisible(false);
+                            showScoreStage();
+                        }
+                        else
+                        {
+                            boardRef.iterateRoundCounter(); //iterate player one's round counter
+                            specialRef.resetCounterRound(); //reset the specials-used-this-round counter
+                            diceRef.rollDice(); //roll the dice
+                            setUpDiceUI(); //reload the dice UI
+                            txtRound.setText("~ Round " + boardRef.getRound() + " ~"); //update the round notifier
+                        }
+                    }
+                    else
+                    { //gameMode == 'c'
+                        if(boardRef.getRound() == 7)
+                        { //this is the last turn
+                            gameFinished = true;
+                            btnRoll.setVisible(false);
+                            computerOpponentHaveTurn(true);
+                        }
+                        else
+                        { //this is not the last turn
+                            computerOpponentHaveTurn(false);
+                            gameStage.hide();
+                            boardRef.iterateRoundCounter(); //iterate player one's round counter
+                            specialRef.resetCounterRound(); //reset the specials-used-this-round counter
+                            diceRef.rollDice(); //roll the dice
+                            computerOpponent.playerData.diceData.copyPlayerOneData(diceRef);
+                            setUpDiceUI(); //reload the dice UI
+                            txtRound.setText("~ Round " + boardRef.getRound() + " ~"); //update the round notifier
+                        }
+                    }
+
+                    /*
                     if(btnRoll.getText().equals("End Game"))
                     { //If this is the last round
                         if(gameMode == 's')
@@ -452,11 +502,13 @@ public class Viewer extends Application {
                         else
                         { //gameMode == 'c'
                             //Calculate the scores, and launch the endGameStage to declare the winner
+                            computerOpponentHaveTurn(true);
                             gameFinished = true;
                             btnRoll.setVisible(false); //set the roll button to invisible so the player cannot press it
                             showScoreStage();
                         }
                     }
+
                     else
                     { //Otherwise it is not the last round
                         if(gameMode == 'c')
@@ -464,7 +516,8 @@ public class Viewer extends Application {
 
                             //Everything to do with having a turn (e.g. round counters, tracking specials, etc)
                             //should be handled within the computer opponent class
-                            computerOpponent.haveTurn();
+                            computerOpponentHaveTurn(false);
+                            gameStage.hide();
                         }
 
                         boardRef.iterateRoundCounter(); //iterate player one's round counter
@@ -479,6 +532,7 @@ public class Viewer extends Application {
                         setUpDiceUI(); //reload the dice UI
                         txtRound.setText("~ Round " + boardRef.getRound() + " ~"); //update the round notifier
                     }
+                    */
                 }
                 else
                 { //Otherwise there are still legal moves that can be made
@@ -486,6 +540,12 @@ public class Viewer extends Application {
                 }
             }
         });
+
+        if(scoreStage != null)
+        {
+            btnRoll.setVisible(false);
+        }
+
         formatBox(dicesUI, Color.LAVENDER, 10, true);
         dicesUI.getChildren().clear();
         dicesUI.getChildren().addAll(txtDices, diceRowOne, diceRowTwo, btnRoll);
@@ -922,7 +982,7 @@ public class Viewer extends Application {
 
      private void showScoreStage()
      {
-         Stage scoreStage = new Stage();
+         scoreStage = new Stage();
          scoreStage.setTitle("Scores");
          scoreStage.setResizable(false);
          VBox root = new VBox();
@@ -930,9 +990,13 @@ public class Viewer extends Application {
          btnMenu.setOnAction(ae ->
          {
              scoreStage.close();
+             scoreStage = null;
+
              gameStage.close();
+             gameStage = null;
              playerData = null;
              gameFinished = false;
+
              start(new Stage());
          });
          ImageView winImage;
@@ -949,7 +1013,7 @@ public class Viewer extends Application {
              root.setAlignment(Pos.CENTER);
              formatBox(root, Color.LAVENDER, 10, false);
          }
-         else if(gameMode == 'm')
+         else
          {
              HBox players = new HBox();
              VBox playerOneStats = getPlayerStats(1);
@@ -987,11 +1051,11 @@ public class Viewer extends Application {
              else if(playerData.get(1).scoreCalculator.getAdvancedScore() >
                      playerData.get(2).scoreCalculator.getAdvancedScore())
              {
-                 winImage = ImageHandler.getMiscTile("player1Wins");
+                 winImage = (gameMode == 'c')?ImageHandler.getMiscTile("youWin"):ImageHandler.getMiscTile("player1Wins");
              }
              else
              {
-                 winImage = ImageHandler.getMiscTile("player2Wins");
+                 winImage = (gameMode == 'c')?ImageHandler.getMiscTile("youLose"):ImageHandler.getMiscTile("player2Wins");
              }
              winImage.setFitHeight(100);
              winImage.setFitWidth(550);
@@ -999,14 +1063,6 @@ public class Viewer extends Application {
              root.getChildren().addAll(winImage, players, btnMenu);
              root.setAlignment(Pos.CENTER);
              formatBox(root, Color.LAVENDER, 10, false);
-         }
-         else
-         { //gameMode == 'c'
-             HBox players = new HBox();
-             VBox playerOneScores = new VBox();
-             VBox computerOpponentScores = new VBox();
-
-
          }
 
          scoreStage.setScene(new Scene(root, GAME_WIDTH/1.5, GAME_HEIGHT/1.5));
@@ -1017,19 +1073,17 @@ public class Viewer extends Application {
      {
          PlayerData player;
          Text txtHeading;
-         if(playerNumber == -1)
+         if(gameMode == 'c')
          { //player is computer
-             player = computerOpponent.playerData;
-             player.calculateScore();
-             txtHeading = new Text("Computer");
+             txtHeading = new Text(((playerNumber == 1)?"~ PLAYER 1 ~":"~ COMPUTER ~"));
          }
          else
          { //player is not computer
-             player = playerData.get(playerNumber);
-             player.calculateScore();
              txtHeading = new Text("~ PLAYER " + playerNumber + " ~");
          }
 
+         player = playerData.get(playerNumber);
+         player.calculateScore();
          formatText(txtHeading, 20, true, true);
          Text txtCenterScore = new Text("Center Score: " + player.scoreCalculator.getCenterScore());
          formatText(txtCenterScore, 18, false, false);
@@ -1044,8 +1098,26 @@ public class Viewer extends Application {
          Text txtTotalScore = new Text("SCORE: " + player.scoreCalculator.getAdvancedScore());
          formatText(txtTotalScore, 18, true, false);
 
+         TextField txtBoardString = new TextField();
+         txtBoardString.setVisible(false);
+         Button btnBoardString = new Button("Show Board String");
+         btnBoardString.setOnAction(ae ->
+         {
+             if(btnBoardString.getText().equals("Show Board String"))
+             {
+                 txtBoardString.setVisible(true);
+                 txtBoardString.setText(playerData.get(playerNumber).boardData.toString());
+                 btnBoardString.setText("Hide Board String");
+             }
+             else
+             {
+                 txtBoardString.setVisible(false);
+                 btnBoardString.setText("Show Board String");
+             }
+         });
+
          VBox playerStats = new VBox();
-         playerStats.getChildren().addAll(txtHeading, txtCenterScore, txtNetworkScore, txtErrors, txtRailroad, txtHighway, txtTotalScore);
+         playerStats.getChildren().addAll(txtHeading, txtCenterScore, txtNetworkScore, txtErrors, txtRailroad, txtHighway, txtTotalScore, btnBoardString, txtBoardString);
          playerStats.setAlignment(Pos.CENTER);
 
          formatBox(playerStats, Color.LIGHTBLUE, 10, true);
@@ -1053,6 +1125,46 @@ public class Viewer extends Application {
          return playerStats;
      }
 
+    private void computerOpponentHaveTurn(boolean lastRound)
+    {
+        gameStage.hide();
+
+        Stage computerStage = new Stage();
+        computerStage.setTitle("Computer is thinking...");
+        computerStage.setResizable(false);
+        VBox root = new VBox();
+        formatBox(root, Color.LAVENDER, 10, false);
+        ImageView computer = ImageHandler.getMiscTile("thinking");
+        computer.setFitHeight(GAME_HEIGHT - 280);
+        computer.setFitWidth(GAME_WIDTH - 200);
+        Button btnContinue;
+        if(lastRound)
+        {
+            btnContinue = new Button("End Game...");
+            btnContinue.setOnAction(ae ->
+            {
+                computerStage.close();
+                gameStage.show();
+                showScoreStage();
+            });
+        }
+        else
+        {
+            btnContinue = new Button("Press to Continue...");
+            btnContinue.setOnAction(ae ->
+            {
+                computerStage.close();
+                gameStage.show();
+            });
+        }
+        btnContinue.setVisible(false);
+        computerOpponent.haveTurn(btnContinue);
+
+        root.getChildren().addAll(computer, btnContinue);
+        root.setAlignment(Pos.CENTER);
+        computerStage.setScene(new Scene(root, GAME_WIDTH - 200, GAME_HEIGHT - 220));
+        computerStage.show();
+    }
 
     /*
     ========================================================
