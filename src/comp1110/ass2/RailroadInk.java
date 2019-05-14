@@ -340,7 +340,32 @@ public class RailroadInk
      */
     public static String generateMove(String boardString, String diceRoll) {
         // FIXME Task 10: generate a valid move
-        return null;
+        String result = "";
+        int size = boardString.length() / 5;
+        Board board = new Board();
+        for (int i = 0; i < size; i++) {
+            board.addTile(boardString.substring(i * 5, i * 5 + 5));
+        }
+        for (int y = 0; y < 7; y++) {
+            for (int x = 0; x < 7; x++) {
+                //build the id from the x and y values
+                StringBuilder id = new StringBuilder();
+                id.append((char) (y + 65));
+                id.append(x);
+                for (int i = 0; i < 4; i++) {
+                    String dice = diceRoll.substring(i * 4, i * 4 + 4);
+                    /* ============= FIXME*/System.out.println(dice);
+                    String placementString = dice + id.toString();
+                    /* ============= FIXME*/System.out.println(placementString);//id + coords + orientation
+                    if (board.addTile(placementString)) {
+                        result += id;
+                    }
+                }
+            }
+        }
+        /* ============= FIXME*/System.out.println(result);
+
+        return result;
     }
 
     /**
@@ -354,8 +379,19 @@ public class RailroadInk
      * @return integer (positive or negative) for final score (not counting expansion packs)
      */
     public static int getAdvancedScore(String boardString) {
+
+        int totalScore = 0;
+        int size = boardString.length() / 5;
+        Board board = new Board();
+        for (int i = 0; i < size; i++) {
+            board.addTile(boardString.substring(i * 5, i * 5 + 5));
+        }
+        ScoreCalculator scoreCal = new ScoreCalculator(board);
+        totalScore = scoreCal.getAdvancedScore();
+        return totalScore;
+
         // FIXME Task 12: compute the total score including bonus points
-        return -1;
+
     }
 
 }
