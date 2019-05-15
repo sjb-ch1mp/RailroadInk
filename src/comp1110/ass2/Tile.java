@@ -325,4 +325,136 @@ public class Tile
     {
         return getType();
     }
+
+    public void fixOrientation()
+    {
+        switch(id)
+        {
+            case "S0":
+            {
+                mirrorFix();
+                break;
+            }
+            case "S1":
+            {
+                mirrorFix();
+                break;
+            }
+            case "S2":
+            {
+                orientation = 0;
+                break;
+            }
+            case "S3":
+            {
+                orientation = 0;
+                break;
+            }
+            case "S4":
+            {
+                switch(orientation)
+                {
+                    case 5:{ updateOrientation(2); break; }
+                    case 6:{ updateOrientation(3); break; }
+                    case 7:{ updateOrientation(0); }
+                }
+                break;
+            }
+            case "S5":
+            {
+                seesawFix();
+                break;
+            }
+            case "A0":
+            {
+                lPieceFix();
+                break;
+            }
+            case "A1":
+            {
+                seesawFix();
+                break;
+            }
+            case "A2":
+            {
+                tPieceFix();
+                break;
+            }
+            case "A3":
+            {
+                tPieceFix();
+                break;
+            }
+            case "A4":
+            {
+                seesawFix();
+                break;
+            }
+            case "A5":
+            {
+                lPieceFix();
+                break;
+            }
+            case "B0":
+            {
+                mirrorFix();
+                break;
+            }
+            case "B2":
+            {
+                seesawFix();
+            }
+        }
+    }
+
+    private void seesawFix()
+    {
+        if(orientation > 1)
+        {
+            if(orientation%2==0)
+            {
+                updateOrientation(0);
+            }
+            else
+            {
+                updateOrientation(1);
+            }
+        }
+    }
+
+    private void tPieceFix()
+    {
+        if(orientation > 3)
+        {
+            switch(orientation)
+            {
+                case 4:{ updateOrientation(2); break; }
+                case 5:{ updateOrientation(3); break; }
+                case 6:{ updateOrientation(0); break; }
+                case 7:{ updateOrientation(1); }
+            }
+        }
+    }
+
+    private void lPieceFix()
+    {
+        if(orientation > 3)
+        {
+            switch(orientation)
+            {
+                case 4:{ updateOrientation(1); break; }
+                case 5:{ updateOrientation(2); break; }
+                case 6:{ updateOrientation(3); break; }
+                case 7:{ updateOrientation(0); }
+            }
+        }
+    }
+
+    private void mirrorFix()
+    {
+        if(orientation > 3)
+        {
+            this.updateOrientation(orientation - 4);
+        }
+    }
 }
