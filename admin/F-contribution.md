@@ -13,9 +13,9 @@ of lines of code (as of 8:15pm 15 May 2019).
     * Thoraya Al-Sabti: 83 (RailroadInk)
     * Total number of lines written by team:  4358
 
-* Therefore: 
-    * Contribution(Samuel Brookes) = (4033/4358)*100 = 92.5%
-    * Contribution(Baohong Tan) = (242/4358)*100 = 5.6%
-    * Contribution(Thoraya Al-Sabti) = 100% - (Contribution(Samuel Brookes) + Contribution(Baohong Tan)) = 1.9%
+* Therefore: we decided to give following contribution to each group member.
+    * Contribution(Samuel Brookes) = 80%
+    * Contribution(Baohong Tan) = 12%
+    * Contribution(Thoraya Al-Sabti) = 8%
 
-Signed: Samuel Brookes (u5380100)
+Signed: Samuel Brookes (u5380100) Baohong Tan (u6126217)
