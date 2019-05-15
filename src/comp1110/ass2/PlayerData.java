@@ -9,7 +9,7 @@ import comp1110.ass2.gui.SpecialTiles;
  * The access for the data objects is public as they will only ever be accessed by the
  * Viewer class.
  *
- * @author Samuel J. Brookes (unless indicated otherwise)
+ * @author Samuel J. Brookes (u5380100) - unless indicated otherwise
  */
 public class PlayerData
 {

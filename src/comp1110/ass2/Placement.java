@@ -5,7 +5,7 @@ import comp1110.ass2.gui.Dices;
 /**
  * The Placement class makes it easier to handle placement data.
  *
- * @author Samuel J. Brookes (unless indicated otherwise)
+ * @author Samuel J. Brookes (u5380100) - unless indicated otherwise
  */
 public class Placement
 {

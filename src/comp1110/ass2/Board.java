@@ -10,7 +10,7 @@ import java.util.Map;
  * The Board class keeps of all placements on the board in a HashMap for easy access (by coordinate).
  * It also stores the coordinates for the centre tiles and the exit tiles (along with their exit type)
  *
- * @author Samuel J. Brookes (unless indicated otherwise)
+ * @author Samuel J. Brookes (u5380100) - unless indicated otherwise
  */
 
 public class Board

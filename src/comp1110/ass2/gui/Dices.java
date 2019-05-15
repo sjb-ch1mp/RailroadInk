@@ -13,7 +13,7 @@ import java.util.Random;
  * It stores Tile information for each of the Dices in the game and handles the rotation
  * of the ImageView objects on the board.
  *
- * @author Samuel J. Brookes (unless indicated otherwise)
+ * @author Samuel J. Brookes (u5380100) - unless indicated otherwise
  */
 
 public class Dices

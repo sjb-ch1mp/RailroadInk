@@ -11,11 +11,17 @@ import java.util.Map;
  * The ComputerOpponent class will hold all player data for the computer opponent
  * and handle all the behaviour of the computer opponent.
  *
- * @author Samuel J. Brookes (unless indicated otherwise)
+ * @author Samuel J. Brookes (u5380100) - unless indicated otherwise
  */
 public class ComputerOpponent
 {
-
+    /*
+    *
+    * NEED TO WRITE AN ORIENTATION CORRECTING METHOD WHERE ALL EQUIVALENT ORIENTATIONS ARE CHANGED
+    * TO THE LOWEST
+    *
+    *
+    * */
     public PlayerData playerData;
 
     public ComputerOpponent(PlayerData playerData)

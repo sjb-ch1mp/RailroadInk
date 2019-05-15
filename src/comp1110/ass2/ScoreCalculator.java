@@ -16,7 +16,7 @@ import java.util.function.IntPredicate;
  *  Fifth, evaluate each route separately to find the longest highway.
  *  Sixth, evaluate each route separately to find the longest railway.
  *
- *  @author Samuel J. Brookes (unless indicated otherwise)
+ *  @author Samuel J. Brookes (u5380100) - unless indicated otherwise
  */
 public class ScoreCalculator
 {
@@ -26,6 +26,7 @@ public class ScoreCalculator
     private int score;
     private Board board;
     private ArrayList<ArrayList<RouteNode>> routes;
+    private ArrayList<ArrayList<TraversalNode>> traversedRoutes;
     private int longestHighway;
     private int longestRailroad;
     private int centerScore;
@@ -71,8 +72,7 @@ public class ScoreCalculator
         centerScore = countCenterSquares();
         errors = countErrors();
         networkScore = calculateNetworkScore();
-        longestHighway = calculateLongestRoute('H');
-        longestRailroad = calculateLongestRoute('R');
+        calculateLongestRoutes();
 
         score = (centerScore + networkScore + longestHighway + longestRailroad) - errors;
     }
@@ -433,7 +433,6 @@ public class ScoreCalculator
         {
             if(tests.get(i).test(hangingTile.getTestValue(i)))
             {
-                String adjCoords = board.getAdjCoords(directions.get(i), hangingTile);
                 if(errorAtEdge(hangingTile, directions.get(i)))
                 {
                     return directions.get(i);
@@ -488,40 +487,210 @@ public class ScoreCalculator
         return false;
     }
 
-    /**
-     * This method calculates either the longest highway or longest railway by
-     * iterating through the stored routes and getting the maximum value.
-     * @param type
-     * @return (int) Value of Longest Highway/Railway
-     */
-    private int calculateLongestRoute(char type)
+    private void calculateLongestRoutes()
     {
-        //put type (either 'R' or 'H') into the conditional statement that checks for a connection between tiles.
-        //this will ensure that either the longest Railway is calculated, or the longest Highway
-        int max = Integer.MIN_VALUE;
+        ArrayList<Integer[]> maximumRouteLengths = new ArrayList<>(0);
 
         for(ArrayList<RouteNode> route : routes)
         {
-            int longestStretch = getLongestStretch(route, type);
-            if(max < longestStretch)
+            maximumRouteLengths.add(getMaximumLengthsFromRoute(route));
+        }
+
+        int railroadMax, highwayMax;
+        railroadMax = highwayMax = Integer.MIN_VALUE;
+        for(int i=0; i<maximumRouteLengths.size(); i++)
+        {
+            if(railroadMax < maximumRouteLengths.get(i)[0]) railroadMax = maximumRouteLengths.get(i)[0];
+            if(highwayMax < maximumRouteLengths.get(i)[1]) highwayMax = maximumRouteLengths.get(i)[1];
+        }
+        longestRailroad = railroadMax;
+        longestHighway = highwayMax;
+    }
+
+    private ArrayList<TraversalNode> convertNodes(ArrayList<RouteNode> route)
+    {
+        ArrayList<TraversalNode> notTraversed = new ArrayList<>(0);
+        //Convert rNodes to tNodes and search for all startNodes
+        for(RouteNode rNode : route)
+        {
+
+            TraversalNode tNode = new TraversalNode(rNode);
+
+            //Search for all start nodes and mark the tNode
+            //Start nodes are: dead ends, stations and route exits
+            if(tNode.data.isStation())
+            {//tNode is a station
+                tNode.isStartNode = true;
+            }
+            else
             {
-                max = longestStretch;
+                for(Map.Entry<String, String> mapEntry : board.getExitCoords().entrySet())
+                {
+                    if(mapEntry.getKey().equals(tNode.data.getCoords()))
+                    {//tNode is at an exit coordinate
+                        if(tNode.data.getEdge(mapEntry.getValue().charAt(0)) ==
+                                mapEntry.getValue().charAt(1))
+                        { //there is a valid connection to the exit - tNode is a route exit
+                            tNode.isStartNode = true;
+                            break;
+                        }
+                    }
+                }
+
+                if(!tNode.isStartNode)
+                { //if the tNode is still not designated as a start node...
+                    for(int i=0; i<4; i++)
+                    {
+                        if(errorAtEdge(tNode.data, directions.get(i)))
+                        { //if there is an error at any edge, tNode is a dead end
+                            tNode.isStartNode = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            notTraversed.add(tNode);
+        }
+
+        return notTraversed;
+    }
+
+    private boolean allStartNodesUsed(ArrayList<TraversalNode> notTraversed)
+    {
+        for(TraversalNode tNode : notTraversed)
+        {
+            if(tNode.isStartNode && !tNode.isUsed)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private Integer[] getMaximumLengthsFromRoute(ArrayList<RouteNode> route)
+    {
+        ArrayList<Integer> railroadScores = new ArrayList<>(0);
+        ArrayList<Integer> highwayScores = new ArrayList<>(0);
+        ArrayList<TraversalNode> notTraversed = convertNodes(route);
+
+        while(!allStartNodesUsed(notTraversed))
+        {
+            //choose a startNode as the firstNode
+            TraversalNode firstNode = null;
+            for(TraversalNode tNode : notTraversed)
+            {
+                if(tNode.isStartNode && !tNode.isUsed)
+                {
+                    tNode.isUsed = true;
+                    tNode.isFirstNode = true;
+                    firstNode = tNode;
+                    break;
+                }
+            }
+
+            //traverse the path
+            ArrayList<TraversalNode> traversed = traverseRoute(notTraversed, firstNode);
+
+            //store the maximums
+            int railroadMax, highwayMax;
+            railroadMax = highwayMax = Integer.MIN_VALUE;
+            for(TraversalNode tNode : traversed)
+            {
+                if(railroadMax < tNode.rScore) railroadMax = tNode.rScore;
+                if(highwayMax < tNode.hScore) highwayMax = tNode.hScore;
+            }
+            railroadScores.add(railroadMax);
+            highwayScores.add(highwayMax);
+
+            /* ====================================================== debug*/System.out.println("\t==Max Rail: " + railroadMax);
+            /* ====================================================== debug*/System.out.println("\t==Max Road: " + highwayMax);
+
+            //put traversed back into notTraversed
+            notTraversed = traversed;
+            for(TraversalNode tNode : notTraversed)
+            {
+                tNode.refreshNode();
             }
         }
 
-        return max;
+        //get the maximum railroad and highway lengths
+        Integer[] maxScores = new Integer[2]; //[0] = Railroad, [1] = Highway
+        maxScores[0] = maxScores[1] = Integer.MIN_VALUE;
+        for(Integer rScore : railroadScores)
+        {
+            if(maxScores[0] < rScore) maxScores[0] = rScore;
+        }
+        for(Integer hScore : highwayScores)
+        {
+            if(maxScores[1] < hScore) maxScores[1] = hScore;
+        }
+
+        //return the maximum scores for this route
+        return maxScores;
     }
 
-    /**
-     * This method parses a given route and calculates the longest highway/railway
-     * in that route.
-     * @param route
-     * @param type
-     * @return
-     */
-    private int getLongestStretch(ArrayList<RouteNode> route, char type)
+    private ArrayList<TraversalNode> traverseRoute(ArrayList<TraversalNode> notTraversed, TraversalNode firstNode)
     {
-        return 0;
+        ArrayList<TraversalNode> traversed = new ArrayList<>(0);
+
+        /* ====================================================== debug*/System.out.println("New evaluation starting from: " + firstNode.data.getPlacementString());
+
+        while(notTraversed.size() > 0)
+        {
+            //get the firstNode, or the first tNode in notTraversed
+            TraversalNode tNode;
+            if(firstNode.isFirstNode)
+            {
+                tNode = firstNode;
+            }
+            else
+            {
+                tNode = notTraversed.get(0);
+            }
+            for(int i=0; i<4; i++)
+            {
+                char edge = directions.get(i);
+                if(tNode.traversableEdges.containsKey(edge) && !tNode.traversableEdges.get(edge))
+                { //if there is a route to traverse at this edge and it has not yet been traversed
+                    String adjCoords = board.getAdjCoords(edge, tNode.data);
+                    TraversalNode adjTNode = getTraversalNode(notTraversed, adjCoords);
+                    if(adjTNode != null && adjTNode.traversableEdges.containsKey(board.getOppositeEdge(edge)))
+                    {//there is a placement in this position and the adjTNode has an edge here, then THERE MUST BE A LEGAL CONNECTION BETWEEN THEM
+                        tNode.traverse(edge, adjTNode);
+                    }
+                    else
+                    { //there is no legal adjTNode here, mark the edge as traversed
+                        tNode.traversableEdges.put(edge, true);
+                    }
+                }
+            }
+
+            if(tNode.allEdgesTraversed())
+            {
+                notTraversed.remove(tNode);
+                traversed.add(tNode);
+                if(tNode.isFirstNode)
+                {
+                    tNode.isFirstNode = false;
+                }
+            }
+
+            /* ====================================================== debug*/System.out.println("\t" + tNode.data.getPlacementString() + ", hScore = " + tNode.hScore + ", rScore = " + tNode.rScore);
+
+        }
+        return traversed;
+    }
+
+    private TraversalNode getTraversalNode(ArrayList<TraversalNode> notTraversed, String adjCoords)
+    {
+        for(TraversalNode tNode : notTraversed)
+        {
+            if(tNode.data.getCoords().equals(adjCoords))
+            {
+                return tNode;
+            }
+        }
+        return null;
     }
 
     /**
@@ -599,6 +768,106 @@ public class ScoreCalculator
             this.entryEdge = entryEdge;
             this.entryType = data.getEdge(entryEdge);
             checked = false;
+        }
+    }
+
+    /**
+     * This class is a wrapper class used to evaluate the longest route lengths.
+     */
+    private class TraversalNode extends RouteNode
+    {
+        HashMap<Character, Boolean> traversableEdges;
+        int rScore, hScore;
+        boolean isFirstNode, isStartNode, isUsed;
+
+        TraversalNode(RouteNode rNode)
+        {
+            super(rNode.entryEdge, rNode.data);
+
+            isFirstNode = isStartNode = isUsed = false;
+
+            rScore = (hasEdge('R'))?1:0;
+            hScore = (hasEdge('H'))?1:0;
+            traversableEdges = new HashMap<>(0);
+            for(int i=0; i<4; i++)
+            {
+                if(data.getEdge(directions.get(i)) != '0')
+                {
+                    traversableEdges.put(directions.get(i), false);
+                }
+            }
+        }
+
+        public void refreshNode()
+        {
+            for(int i=0; i<4; i++)
+            {
+                if(traversableEdges.containsKey(directions.get(i)))
+                {
+                    traversableEdges.put(directions.get(i), false);
+                }
+            }
+
+            rScore = (hasEdge('R'))?1:0;
+            hScore = (hasEdge('H'))?1:0;
+        }
+
+        private boolean hasEdge(char routeType)
+        {
+            for(int i=0; i<4; i++)
+            {
+                if(data.getEdge(directions.get(i)) == routeType)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public void traverse(char edge, TraversalNode adjTNode)
+        {
+            char routeType = data.getEdge(edge);
+
+            if(routeType == 'R')
+            {
+                if(adjTNode.rScore > rScore)
+                {
+                    rScore = adjTNode.rScore + 1;
+                }
+                else
+                {
+                    adjTNode.rScore = rScore + 1;
+                }
+            }
+            else
+            { //routeType == 'H'
+                if(adjTNode.hScore > hScore)
+                {
+                    hScore = adjTNode.hScore + 1;
+                }
+                else
+                {
+                    adjTNode.hScore = hScore + 1;
+                }
+            }
+
+            traversableEdges.put(edge, true);
+            adjTNode.traversableEdges.put(board.getOppositeEdge(edge), true);
+        }
+
+        public boolean allEdgesTraversed()
+        {
+            for(int i=0; i<4; i++)
+            {
+                if(traversableEdges.containsKey(directions.get(i)))
+                {
+                    if(!traversableEdges.get(directions.get(i)))
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
     }
 
