@@ -10,7 +10,7 @@ import java.util.Map;
  * It stores Tile information for each of the Special Tiles in a given game and handles the rotation
  * of the ImageView objects on the board.
  *
- * @author Samuel J. Brookes (unless indicated otherwise)
+ * @author Samuel J. Brookes (u5380100) - unless indicated otherwise
  */
 
 public class SpecialTiles

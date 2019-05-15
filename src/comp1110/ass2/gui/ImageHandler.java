@@ -12,7 +12,7 @@ import javafx.scene.transform.Rotate;
  * retrieve images from the assets folder for use as tiles in the UI.
  * Images are resized, rotated and returned as an ImageView object.
  *
- * @author Samuel J. Brookes (unless indicated otherwise)
+ * @author Samuel J. Brookes (u5380100) - unless indicated otherwise
  */
 
 public class ImageHandler

@@ -23,6 +23,7 @@ public class RailroadInk
      * - the fourth character represents the placement column 0-6
      * - the fifth character represents the orientation 0-7
      *
+     * @author Thoraya Al-Sabti (u6136358)
      * @param tilePlacementString a candidate tile placement string
      * @return true if the tile placement is well formed
      */
@@ -57,6 +58,7 @@ public class RailroadInk
      * - each piece placement is well-formed
      * - no more than three special tiles are included
      *
+     * @author Thoraya Al-Sabti (u6136358)
      * @param boardString a board string describing the placement of one or more pieces
      * @return true if the board string is well-formed
      */
@@ -92,6 +94,7 @@ public class RailroadInk
      * invalid connection between highway and railway; and
      * areConnectedNeighbours("A0B30", "A3C23") would return false as these tiles are not neighbours.
      *
+     * @author Baohong Tan (u6126217)
      * @return true if the placements are connected neighbours
      */
     public static boolean areConnectedNeighbours(String tilePlacementStringA, String tilePlacementStringB) {
@@ -141,6 +144,7 @@ public class RailroadInk
      * - A tile may have one or more edges touching a blank edge of another tile;
      *   this is referred to as disconnected, but the placement is still legal.
      *
+     * @author Baohong Tan (u6126217)
      * @param boardString a board string representing some placement sequence
      * @return true if placement sequence is valid
      */
@@ -244,7 +248,11 @@ public class RailroadInk
         else return true;
         // FIXME Task 6: determine whether the given placement sequence is valid
     }
-//LEFT-TOP-RIGHT-BOTTOM R = RAIL, H=HIGH
+    //LEFT-TOP-RIGHT-BOTTOM R = RAIL, H=HIGH
+
+    /**
+     * @author Baohong Tan (u6126217)
+     */
     private static String testConnect(String input){
         String pic = input.substring(0,2);
         String ori = input.charAt(4)+"";
@@ -266,6 +274,10 @@ public class RailroadInk
         String out = rolate(pic,ori);
         return out;
     }
+
+    /**
+     * @author Baohong Tan (u6126217)
+     */
     private static String rolate(String pic, String ori){
         int orit = Integer.parseInt(ori);
         char[] pic_out = new char[4];
@@ -291,6 +303,7 @@ public class RailroadInk
      * Each die roll is composed of a character 'A' or 'B' representing the dice,
      * followed by a digit character representing the face.
      *
+     * @author Baohong Tan (u6126217)
      * @return a String representing the die roll e.g. A0A4A3B2
      */
     public static String generateDiceRoll() {
@@ -315,6 +328,7 @@ public class RailroadInk
      * * Number of centre tiles used
      * * Number of dead ends in the network
      *
+     * @author Baohong Tan (u6126217)
      * @param boardString a board string representing a completed game
      * @return integer (positive or negative) for score *not* considering longest rail/highway
      */
@@ -350,7 +364,7 @@ public class RailroadInk
      * * Longest railroad
      * * Longest highway
      *
-     * @author Samuel J. Brookes
+     * @author Samuel J. Brookes (u5380100)
      * @param boardString a board string representing a completed game
      * @return integer (positive or negative) for final score (not counting expansion packs)
      */

@@ -8,7 +8,7 @@ import java.util.HashMap;
  * have which connections when changing the orientation, and will make it easier
  * to get the correct image of a Tile from assets.
  *
- * @author Samuel J. Brookes (unless indicated otherwise)
+ * @author Samuel J. Brookes (u5380100) - unless indicated otherwise
  */
 
 public class Tile

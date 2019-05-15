@@ -27,7 +27,7 @@ import java.util.ArrayList;
 /**
  * The Viewer class has been modified to act as the main class for the game interface.
  *
- * @author Samuel J. Brookes (unless indicated otherwise)
+ * @author Samuel J. Brookes (u5380100) - unless indicated otherwise
  */
 public class Viewer extends Application {
 

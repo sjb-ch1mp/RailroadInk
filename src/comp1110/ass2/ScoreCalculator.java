@@ -16,7 +16,7 @@ import java.util.function.IntPredicate;
  *  Fifth, evaluate each route separately to find the longest highway.
  *  Sixth, evaluate each route separately to find the longest railway.
  *
- *  @author Samuel J. Brookes (unless indicated otherwise)
+ *  @author Samuel J. Brookes (u5380100) - unless indicated otherwise
  */
 public class ScoreCalculator
 {
