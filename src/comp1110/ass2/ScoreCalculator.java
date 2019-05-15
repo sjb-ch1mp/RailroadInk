@@ -433,7 +433,6 @@ public class ScoreCalculator
         {
             if(tests.get(i).test(hangingTile.getTestValue(i)))
             {
-                String adjCoords = board.getAdjCoords(directions.get(i), hangingTile);
                 if(errorAtEdge(hangingTile, directions.get(i)))
                 {
                     return directions.get(i);
@@ -515,18 +514,40 @@ public class ScoreCalculator
         for(RouteNode rNode : route)
         {
 
-            /*FIXME
-             SEARCH FOR ALL START NODES HERE, INCLUDING:
-                DEAD ENDS,
-                EXIT COORDINATES,
-                AND 'B Tile' STATIONS (as opposed to 'S Tile' station).
-             */
-
-
             TraversalNode tNode = new TraversalNode(rNode);
-            if(tNode.isFirstNode)
+
+            //Search for all start nodes and mark the tNode
+            //Start nodes are: dead ends, stations and route exits
+            if(tNode.data.isStation())
+            {//tNode is a station
+                tNode.isStartNode = true;
+            }
+            else
             {
-                tNode.traversableEdges.put(tNode.entryEdge, true);
+                for(Map.Entry<String, String> mapEntry : board.getExitCoords().entrySet())
+                {
+                    if(mapEntry.getKey().equals(tNode.data.getCoords()))
+                    {//tNode is at an exit coordinate
+                        if(tNode.data.getEdge(mapEntry.getValue().charAt(0)) ==
+                                mapEntry.getValue().charAt(1))
+                        { //there is a valid connection to the exit - tNode is a route exit
+                            tNode.isStartNode = true;
+                            break;
+                        }
+                    }
+                }
+
+                if(!tNode.isStartNode)
+                { //if the tNode is still not designated as a start node...
+                    for(int i=0; i<4; i++)
+                    {
+                        if(errorAtEdge(tNode.data, directions.get(i)))
+                        { //if there is an error at any edge, tNode is a dead end
+                            tNode.isStartNode = true;
+                            break;
+                        }
+                    }
+                }
             }
             notTraversed.add(tNode);
         }
@@ -546,22 +567,10 @@ public class ScoreCalculator
         return true;
     }
 
-    private ArrayList<TraversalNode> putBackInNotTraversed(ArrayList<TraversalNode> traversed)
-    {
-        ArrayList<TraversalNode> notTraversed = new ArrayList<>(0);
-        for(TraversalNode tNode : traversed)
-        {
-            notTraversed.add(tNode);
-            traversed.remove(tNode);
-        }
-        return notTraversed;
-    }
-
     private Integer[] getMaximumLengthsFromRoute(ArrayList<RouteNode> route)
     {
         ArrayList<Integer> railroadScores = new ArrayList<>(0);
         ArrayList<Integer> highwayScores = new ArrayList<>(0);
-
         ArrayList<TraversalNode> notTraversed = convertNodes(route);
 
         while(!allStartNodesUsed(notTraversed))
@@ -575,6 +584,7 @@ public class ScoreCalculator
                     tNode.isUsed = true;
                     tNode.isFirstNode = true;
                     firstNode = tNode;
+                    break;
                 }
             }
 
@@ -592,8 +602,15 @@ public class ScoreCalculator
             railroadScores.add(railroadMax);
             highwayScores.add(highwayMax);
 
+            /* ====================================================== debug*/System.out.println("\t==Max Rail: " + railroadMax);
+            /* ====================================================== debug*/System.out.println("\t==Max Road: " + highwayMax);
+
             //put traversed back into notTraversed
-            notTraversed = putBackInNotTraversed(traversed);
+            notTraversed = traversed;
+            for(TraversalNode tNode : notTraversed)
+            {
+                tNode.refreshNode();
+            }
         }
 
         //get the maximum railroad and highway lengths
@@ -616,11 +633,13 @@ public class ScoreCalculator
     {
         ArrayList<TraversalNode> traversed = new ArrayList<>(0);
 
+        /* ====================================================== debug*/System.out.println("New evaluation starting from: " + firstNode.data.getPlacementString());
+
         while(notTraversed.size() > 0)
         {
             //get the firstNode, or the first tNode in notTraversed
             TraversalNode tNode;
-            if(firstNode != null)
+            if(firstNode.isFirstNode)
             {
                 tNode = firstNode;
             }
@@ -628,7 +647,6 @@ public class ScoreCalculator
             {
                 tNode = notTraversed.get(0);
             }
-
             for(int i=0; i<4; i++)
             {
                 char edge = directions.get(i);
@@ -636,15 +654,12 @@ public class ScoreCalculator
                 { //if there is a route to traverse at this edge and it has not yet been traversed
                     String adjCoords = board.getAdjCoords(edge, tNode.data);
                     TraversalNode adjTNode = getTraversalNode(notTraversed, adjCoords);
-                    if(adjTNode != null)
-                    {//there is a placement in this position
-                        if(adjTNode.traversableEdges.containsKey(board.getOppositeEdge(edge)))
-                        { //if the adjTNode has an edge here then THERE MUST BE A LEGAL CONNECTION BETWEEN THEM
-                            tNode.traverse(edge, adjTNode);
-                        }
+                    if(adjTNode != null && adjTNode.traversableEdges.containsKey(board.getOppositeEdge(edge)))
+                    {//there is a placement in this position and the adjTNode has an edge here, then THERE MUST BE A LEGAL CONNECTION BETWEEN THEM
+                        tNode.traverse(edge, adjTNode);
                     }
                     else
-                    { //there is no adjTNode here, mark the edge as traversed
+                    { //there is no legal adjTNode here, mark the edge as traversed
                         tNode.traversableEdges.put(edge, true);
                     }
                 }
@@ -656,9 +671,12 @@ public class ScoreCalculator
                 traversed.add(tNode);
                 if(tNode.isFirstNode)
                 {
-                    firstNode = null;
+                    tNode.isFirstNode = false;
                 }
             }
+
+            /* ====================================================== debug*/System.out.println("\t" + tNode.data.getPlacementString() + ", hScore = " + tNode.hScore + ", rScore = " + tNode.rScore);
+
         }
         return traversed;
     }
@@ -778,6 +796,20 @@ public class ScoreCalculator
                     traversableEdges.put(directions.get(i), false);
                 }
             }
+        }
+
+        public void refreshNode()
+        {
+            for(int i=0; i<4; i++)
+            {
+                if(traversableEdges.containsKey(directions.get(i)))
+                {
+                    traversableEdges.put(directions.get(i), false);
+                }
+            }
+
+            rScore = (hasEdge('R'))?1:0;
+            hScore = (hasEdge('H'))?1:0;
         }
 
         private boolean hasEdge(char routeType)
