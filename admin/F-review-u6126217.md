@@ -1,6 +1,6 @@
-Reviewer: Mary Jones (u2345678)
+Reviewer: Baohong Tan (u6126217)
 Component: <...>
-Author: Bob Smith (u3456789)
+Author: Thoraya
 
 Review Comments:
 
