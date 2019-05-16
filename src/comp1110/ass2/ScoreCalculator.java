@@ -487,15 +487,27 @@ public class ScoreCalculator
         return false;
     }
 
+    /**
+     * This is the main method that coordinates the calculations for the Longest Railroad
+     * and Longest Highway. It loops through the routes and calculates the maximum railroad
+     * and highway length on that route and stores them in an ArrayList of int arrays.
+     * Index 0 of each int array is the longest railroad from the route and
+     * index 1 is the longest highway. It then loops through the ArrayList of maximum lengths
+     * to find ITS maximum, which is the maximum for the entire board.
+     *
+     * It's not pretty, but it works!
+     */
     private void calculateLongestRoutes()
     {
         ArrayList<Integer[]> maximumRouteLengths = new ArrayList<>(0);
 
+        //for each route in routes, add the longest railroad and longest highway to maximumRouteLengths
         for(ArrayList<RouteNode> route : routes)
         {
             maximumRouteLengths.add(getMaximumLengthsFromRoute(route));
         }
 
+        //Loop through maximumRouteLengths to find the longest highway and longest railway on the board
         int railroadMax, highwayMax;
         railroadMax = highwayMax = Integer.MIN_VALUE;
         for(int i=0; i<maximumRouteLengths.size(); i++)
@@ -505,34 +517,46 @@ public class ScoreCalculator
         }
         longestRailroad = railroadMax;
         longestHighway = highwayMax;
-
-        //* ====================================================== debug*/System.out.println("====Longest Rail = " + longestRailroad + ", Longest Road = " + longestHighway + "====");
     }
 
+    /**
+     * This method takes a route (of RouteNodes) and converts them to TraversalNodes (tNodes).
+     * It then chooses a 'startNode' (which is any node that a path ends) and evaluates the
+     * route starting from this node TWICE (see traverseRoute() method for more details on why).
+     * Once the route has been evaluated (or 'traversed') from this given node, it stores the
+     * maximum railroad and highway lengths for that evaluation in two ArrayLists.
+     * Once the route has been evaluated  TWICE from each startNode, the maximum lengths for
+     * both route types are stores in an array and returned.
+     * @param route
+     * @return
+     */
     private Integer[] getMaximumLengthsFromRoute(ArrayList<RouteNode> route)
     {
-        ArrayList<Integer> railroadScores = new ArrayList<>(0);
-        ArrayList<Integer> highwayScores = new ArrayList<>(0);
-        ArrayList<TraversalNode> tNodePool = convertNodes(route);
+        ArrayList<Integer> railroadScores = new ArrayList<>(0); //Stores the longest railroads for each evaluation
+        ArrayList<Integer> highwayScores = new ArrayList<>(0); //Stores the longest highways for each evaluation
+        ArrayList<TraversalNode> tNodePool = convertNodes(route); //Stores all nodes in the route as a 'pool' of tNodes
 
         while(!allStartNodesUsed(tNodePool))
-        {
-            //choose a startNode
+        { //while all the start nodes have not been used as a starting point for the evaluation
+
             ArrayList<TraversalNode> notTraversed = new ArrayList<>(0);
+            int round = 0;
+
             for(TraversalNode tNode : tNodePool)
             {
-                if(tNode.isStartNode && !tNode.isUsed)
-                {
-                    tNode.isUsed = true;
+                if(tNode.isStartNode && tNode.usedCount < 2)
+                {//choose a startNode that hasn't been used twice and put it into the notTraversed ArrayList
+                    tNode.usedCount++;
+                    round = tNode.usedCount;
                     notTraversed.add(tNode);
                     break;
                 }
             }
 
-            //traverse the path
-            ArrayList<TraversalNode> traversed = traverseRoute(tNodePool, notTraversed);
+            //Evaluate the path from this startNode
+            ArrayList<TraversalNode> traversed = traverseRoute(tNodePool, notTraversed, round);
 
-            //store the maximums
+            //Store the maximum railway and highway from this evaluation
             int railroadMax, highwayMax;
             railroadMax = highwayMax = Integer.MIN_VALUE;
             for(TraversalNode tNode : traversed)
@@ -543,10 +567,7 @@ public class ScoreCalculator
             railroadScores.add(railroadMax);
             highwayScores.add(highwayMax);
 
-            //* ====================================================== debug*/System.out.println("\t==Max Rail: " + railroadMax);
-            //* ====================================================== debug*/System.out.println("\t==Max Road: " + highwayMax);
-
-            //put traversed back into notTraversed
+            //Put all of the tNodes back into the tNode pool and refresh them
             tNodePool = traversed;
             for(TraversalNode tNode : tNodePool)
             {
@@ -554,7 +575,7 @@ public class ScoreCalculator
             }
         }
 
-        //get the maximum railroad and highway lengths
+        //Once the route has been evaluated from each starting point TWICE, get the maximum route lengths and return them
         Integer[] maxScores = new Integer[2]; //[0] = Railroad, [1] = Highway
         maxScores[0] = maxScores[1] = Integer.MIN_VALUE;
         for(Integer rScore : railroadScores)
@@ -566,16 +587,23 @@ public class ScoreCalculator
             if(maxScores[1] < hScore) maxScores[1] = hScore;
         }
 
-        //return the maximum scores for this route
         return maxScores;
     }
 
+    /**
+     * This method takes a route and converts it into TraversalNode tNode objects.
+     * While doing this, it checks if the tNode is a 'start node', i.e. is a dead end,
+     * an exit coordinate or a station, and marks it as a startNode. The route will
+     * be evaluated from each startNode in the route.
+     * @param route
+     * @return tNodePool (ArrayList of TraversalNodes)
+     */
     private ArrayList<TraversalNode> convertNodes(ArrayList<RouteNode> route)
     {
         ArrayList<TraversalNode> tNodePool = new ArrayList<>(0);
-        //Convert rNodes to tNodes and search for all startNodes
+
         for(RouteNode rNode : route)
-        {
+        { //for each RouteNode in the route
 
             TraversalNode tNode = new TraversalNode(rNode);
 
@@ -618,11 +646,18 @@ public class ScoreCalculator
         return tNodePool;
     }
 
+    /**
+     * This method checks whether all startNodes in a tNodePool have been
+     * evaluated at least twice.
+     *
+     * @param tNodePool
+     * @return boolean
+     */
     private boolean allStartNodesUsed(ArrayList<TraversalNode> tNodePool)
     {
         for(TraversalNode tNode : tNodePool)
         {
-            if(tNode.isStartNode && !tNode.isUsed)
+            if(tNode.isStartNode && tNode.usedCount < 2)
             {
                 return false;
             }
@@ -630,19 +665,37 @@ public class ScoreCalculator
         return true;
     }
 
-    private ArrayList<TraversalNode> traverseRoute(ArrayList<TraversalNode> tNodePool, ArrayList<TraversalNode> notTraversed)
+    /**
+     * This method is the primary evaluation method. It takes a pool of TraversalNode (tNode)
+     * objects and evaluates the route from the given startNode (which is the only node
+     * in the notTraversed ArrayList initially), returning a 'traversed' ArrayList in which
+     * the rScore (railroad score) and hScore (highway score) of each tNode has been updated
+     * to report how long the route of a given type is up to it's position in the route.
+     *
+     * The parameter 'round' informs the method whether this is the first or second time
+     * the tNode has been used as a starting point for the evaluation. If it is the first time,
+     * the while loop pulls a new tNode from index 0 of the notTraversed ArrayList. If it is the
+     * second time, the while loop pulls a new tNode from index notTraversed.size()-1 of the
+     * notTraversed ArrayList. This is because the order in which the tNodes are pulled from
+     * the ArrayList affects the evaluation, so both possibilities are evaluated.
+     *
+     * @param tNodePool
+     * @param notTraversed
+     * @param round
+     * @return traversed (ArrayList) - an ArrayList of 'traversed' tNodes
+     */
+    private ArrayList<TraversalNode> traverseRoute(ArrayList<TraversalNode> tNodePool, ArrayList<TraversalNode> notTraversed, int round)
     {
         ArrayList<TraversalNode> traversed = new ArrayList<>(0);
 
-        //* ====================================================== debug*/System.out.println("New evaluation starting from: " + notTraversed.get(0).data.getCoords());
-
         while(notTraversed.size() > 0)
-        {
-            //get the firstNode, or the first tNode in notTraversed
-            TraversalNode tNode = notTraversed.get(notTraversed.size()-1);
-            //* ====================================================== debug*/System.out.println("\tEvaluating: " + tNode.data.getCoords());
+        {//while there are still tNodes that have not been traversed
+
+            //get the first or last tNode in the ArrayList
+            TraversalNode tNode = notTraversed.get((round == 1)?0:notTraversed.size()-1);
+
             for(int i=0; i<4; i++)
-            {
+            {//for each edge of the tNode
                 char edge = directions.get(i);
                 if(tNode.traversableEdges.containsKey(edge) && !tNode.traversableEdges.get(edge))
                 { //if there is a route to traverse at this edge and it has not yet been traversed
@@ -650,9 +703,8 @@ public class ScoreCalculator
                     TraversalNode adjTNode = getTraversalNode(tNodePool, adjCoords);
                     if(adjTNode != null && adjTNode.traversableEdges.containsKey(board.getOppositeEdge(edge)))
                     {//there is a placement in this position and the adjTNode has an edge here, then THERE MUST BE A LEGAL CONNECTION BETWEEN THEM
-                        tNode.traverse(edge, adjTNode);
-                        notTraversed.add(adjTNode);
-                        //* ====================================================== debug*/System.out.println("\t\tAdding to notTraversed: " + adjTNode.data.getCoords() + "(h = " + adjTNode.hScore + ", r = " + adjTNode.rScore + ")");
+                        tNode.traverse(edge, adjTNode); //traverse the tNode
+                        notTraversed.add(adjTNode); //store the adjacent tNode in notTraversed so it will be traversed
                     }
                     else
                     { //there is no legal adjTNode here, mark the edge as traversed
@@ -661,15 +713,21 @@ public class ScoreCalculator
                 }
             }
 
+            //remove the tNode from notTraversed and add it to traversed
             notTraversed.remove(tNode);
             traversed.add(tNode);
-
-            //* ====================================================== debug*/System.out.println("\t\t\t" + tNode.data.getCoords() + ", hScore = " + tNode.hScore + ", rScore = " + tNode.rScore);
 
         }
         return traversed;
     }
 
+    /**
+     * This method retrieves a TraversalNode (tNode) from the pool of available nodes in a given route.
+     * The tNode retrieved is the tNode adjacent to that being evaluated.
+     * @param tNodePool
+     * @param adjCoords
+     * @return
+     */
     private TraversalNode getTraversalNode(ArrayList<TraversalNode> tNodePool, String adjCoords)
     {
         for(TraversalNode tNode : tNodePool)
@@ -762,31 +820,44 @@ public class ScoreCalculator
 
     /**
      * This class is a wrapper class used to evaluate the longest route lengths.
+     * It contains the fields:
+     *  - rScore, which stores the length of the Railroad up to and including this tNode
+     *  - hScore, which stores the length of the Highway up to and including this tNode
+     *  - usedCount, which counts how many times this node has been used as a startNode for a route evaluation
+     *  - isStartNode, which indicates whether the tNode is a starting node (dead end, exit or station)
+     *  - traversableEdges, which stores information about whether an edge has been 'traversed'
      */
     private class TraversalNode extends RouteNode
     {
         HashMap<Character, Boolean> traversableEdges;
-        int rScore, hScore;
-        boolean isStartNode, isUsed;
+        int rScore, hScore, usedCount;
+        boolean isStartNode;
 
         TraversalNode(RouteNode rNode)
         {
             super(rNode.entryEdge, rNode.data);
 
-            isStartNode = isUsed = false;
+            isStartNode = false;
+            int usedCount = 0;
 
-            rScore = (hasEdge('R'))?1:0;
-            hScore = (hasEdge('H'))?1:0;
+            rScore = (hasEdge('R'))?1:0; //if the tNode has any railroads at all, it's rScore is 1
+            hScore = (hasEdge('H'))?1:0; //if the tNode has any highways at all, it's hScore is 1
+
             traversableEdges = new HashMap<>(0);
             for(int i=0; i<4; i++)
             {
                 if(data.getEdge(directions.get(i)) != '0')
-                {
+                {//if the tNode has an exit at this edge, store it
                     traversableEdges.put(directions.get(i), false);
                 }
             }
         }
 
+        /**
+         * This method 'refreshes' a tNode, i.e. it sets all the
+         * traversableEdge values back to false and resets the
+         * rScore and hScore to 1 or 0.
+         */
         public void refreshNode()
         {
             for(int i=0; i<4; i++)
@@ -801,6 +872,12 @@ public class ScoreCalculator
             hScore = (hasEdge('H'))?1:0;
         }
 
+        /**
+         * This method returns true if a tNode has an edge of the
+         * given type.
+         * @param routeType (char - H or R)
+         * @return boolean
+         */
         private boolean hasEdge(char routeType)
         {
             for(int i=0; i<4; i++)
@@ -813,50 +890,43 @@ public class ScoreCalculator
             return false;
         }
 
+        /**
+         * This method 'traverses' the tNode. It is passed an adjacent tNode
+         * from the route. If the adjacent tNode has a larger value of the
+         * route type at that edge, this tNode is updated as the next node
+         * in the route, otherwise the adjacent tNode is.
+         * @param edge
+         * @param adjTNode (TraversalNode - an adjacent tNode in the route)
+         */
         public void traverse(char edge, TraversalNode adjTNode)
         {
             char routeType = data.getEdge(edge);
 
             if(routeType == 'R')
-            {
+            {//if the edge is of the Railroad route type
                 if(adjTNode.rScore > rScore)
-                {
+                {//if the adjacent tNode has a larger rScore, update this.rScore
                     rScore = adjTNode.rScore + 1;
                 }
                 else
-                {
+                {//else update the adjacent tNode's rScore
                     adjTNode.rScore = rScore + 1;
                 }
             }
             else
-            { //routeType == 'H'
+            { //if the edge is of the Highway route type
                 if(adjTNode.hScore > hScore)
-                {
+                {//if the adjacent tNode has a larger hScore, update this.hScore
                     hScore = adjTNode.hScore + 1;
                 }
                 else
-                {
+                {//else update the adjacent tNode's hScore
                     adjTNode.hScore = hScore + 1;
                 }
             }
 
-            traversableEdges.put(edge, true);
-            adjTNode.traversableEdges.put(board.getOppositeEdge(edge), true);
-        }
-
-        public boolean allEdgesTraversed()
-        {
-            for(int i=0; i<4; i++)
-            {
-                if(traversableEdges.containsKey(directions.get(i)))
-                {
-                    if(!traversableEdges.get(directions.get(i)))
-                    {
-                        return false;
-                    }
-                }
-            }
-            return true;
+            traversableEdges.put(edge, true); //mark the edge as 'traversed'
+            adjTNode.traversableEdges.put(board.getOppositeEdge(edge), true); //mark the adjacent tNode's edge as 'traversed'
         }
     }
 
