@@ -26,7 +26,6 @@ public class ScoreCalculator
     private int score;
     private Board board;
     private ArrayList<ArrayList<RouteNode>> routes;
-    private ArrayList<ArrayList<TraversalNode>> traversedRoutes;
     private int longestHighway;
     private int longestRailroad;
     private int centerScore;
