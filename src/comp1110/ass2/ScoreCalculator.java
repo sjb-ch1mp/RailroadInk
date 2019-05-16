@@ -505,11 +505,74 @@ public class ScoreCalculator
         }
         longestRailroad = railroadMax;
         longestHighway = highwayMax;
+
+        //* ====================================================== debug*/System.out.println("====Longest Rail = " + longestRailroad + ", Longest Road = " + longestHighway + "====");
+    }
+
+    private Integer[] getMaximumLengthsFromRoute(ArrayList<RouteNode> route)
+    {
+        ArrayList<Integer> railroadScores = new ArrayList<>(0);
+        ArrayList<Integer> highwayScores = new ArrayList<>(0);
+        ArrayList<TraversalNode> tNodePool = convertNodes(route);
+
+        while(!allStartNodesUsed(tNodePool))
+        {
+            //choose a startNode
+            ArrayList<TraversalNode> notTraversed = new ArrayList<>(0);
+            for(TraversalNode tNode : tNodePool)
+            {
+                if(tNode.isStartNode && !tNode.isUsed)
+                {
+                    tNode.isUsed = true;
+                    notTraversed.add(tNode);
+                    break;
+                }
+            }
+
+            //traverse the path
+            ArrayList<TraversalNode> traversed = traverseRoute(tNodePool, notTraversed);
+
+            //store the maximums
+            int railroadMax, highwayMax;
+            railroadMax = highwayMax = Integer.MIN_VALUE;
+            for(TraversalNode tNode : traversed)
+            {
+                if(railroadMax < tNode.rScore) railroadMax = tNode.rScore;
+                if(highwayMax < tNode.hScore) highwayMax = tNode.hScore;
+            }
+            railroadScores.add(railroadMax);
+            highwayScores.add(highwayMax);
+
+            //* ====================================================== debug*/System.out.println("\t==Max Rail: " + railroadMax);
+            //* ====================================================== debug*/System.out.println("\t==Max Road: " + highwayMax);
+
+            //put traversed back into notTraversed
+            tNodePool = traversed;
+            for(TraversalNode tNode : tNodePool)
+            {
+                tNode.refreshNode();
+            }
+        }
+
+        //get the maximum railroad and highway lengths
+        Integer[] maxScores = new Integer[2]; //[0] = Railroad, [1] = Highway
+        maxScores[0] = maxScores[1] = Integer.MIN_VALUE;
+        for(Integer rScore : railroadScores)
+        {
+            if(maxScores[0] < rScore) maxScores[0] = rScore;
+        }
+        for(Integer hScore : highwayScores)
+        {
+            if(maxScores[1] < hScore) maxScores[1] = hScore;
+        }
+
+        //return the maximum scores for this route
+        return maxScores;
     }
 
     private ArrayList<TraversalNode> convertNodes(ArrayList<RouteNode> route)
     {
-        ArrayList<TraversalNode> notTraversed = new ArrayList<>(0);
+        ArrayList<TraversalNode> tNodePool = new ArrayList<>(0);
         //Convert rNodes to tNodes and search for all startNodes
         for(RouteNode rNode : route)
         {
@@ -549,15 +612,15 @@ public class ScoreCalculator
                     }
                 }
             }
-            notTraversed.add(tNode);
+            tNodePool.add(tNode);
         }
 
-        return notTraversed;
+        return tNodePool;
     }
 
-    private boolean allStartNodesUsed(ArrayList<TraversalNode> notTraversed)
+    private boolean allStartNodesUsed(ArrayList<TraversalNode> tNodePool)
     {
-        for(TraversalNode tNode : notTraversed)
+        for(TraversalNode tNode : tNodePool)
         {
             if(tNode.isStartNode && !tNode.isUsed)
             {
@@ -567,96 +630,29 @@ public class ScoreCalculator
         return true;
     }
 
-    private Integer[] getMaximumLengthsFromRoute(ArrayList<RouteNode> route)
-    {
-        ArrayList<Integer> railroadScores = new ArrayList<>(0);
-        ArrayList<Integer> highwayScores = new ArrayList<>(0);
-        ArrayList<TraversalNode> notTraversed = convertNodes(route);
-
-        while(!allStartNodesUsed(notTraversed))
-        {
-            //choose a startNode as the firstNode
-            TraversalNode firstNode = null;
-            for(TraversalNode tNode : notTraversed)
-            {
-                if(tNode.isStartNode && !tNode.isUsed)
-                {
-                    tNode.isUsed = true;
-                    tNode.isFirstNode = true;
-                    firstNode = tNode;
-                    break;
-                }
-            }
-
-            //traverse the path
-            ArrayList<TraversalNode> traversed = traverseRoute(notTraversed, firstNode);
-
-            //store the maximums
-            int railroadMax, highwayMax;
-            railroadMax = highwayMax = Integer.MIN_VALUE;
-            for(TraversalNode tNode : traversed)
-            {
-                if(railroadMax < tNode.rScore) railroadMax = tNode.rScore;
-                if(highwayMax < tNode.hScore) highwayMax = tNode.hScore;
-            }
-            railroadScores.add(railroadMax);
-            highwayScores.add(highwayMax);
-
-            /* ====================================================== debug*/System.out.println("\t==Max Rail: " + railroadMax);
-            /* ====================================================== debug*/System.out.println("\t==Max Road: " + highwayMax);
-
-            //put traversed back into notTraversed
-            notTraversed = traversed;
-            for(TraversalNode tNode : notTraversed)
-            {
-                tNode.refreshNode();
-            }
-        }
-
-        //get the maximum railroad and highway lengths
-        Integer[] maxScores = new Integer[2]; //[0] = Railroad, [1] = Highway
-        maxScores[0] = maxScores[1] = Integer.MIN_VALUE;
-        for(Integer rScore : railroadScores)
-        {
-            if(maxScores[0] < rScore) maxScores[0] = rScore;
-        }
-        for(Integer hScore : highwayScores)
-        {
-            if(maxScores[1] < hScore) maxScores[1] = hScore;
-        }
-
-        //return the maximum scores for this route
-        return maxScores;
-    }
-
-    private ArrayList<TraversalNode> traverseRoute(ArrayList<TraversalNode> notTraversed, TraversalNode firstNode)
+    private ArrayList<TraversalNode> traverseRoute(ArrayList<TraversalNode> tNodePool, ArrayList<TraversalNode> notTraversed)
     {
         ArrayList<TraversalNode> traversed = new ArrayList<>(0);
 
-        /* ====================================================== debug*/System.out.println("New evaluation starting from: " + firstNode.data.getPlacementString());
+        //* ====================================================== debug*/System.out.println("New evaluation starting from: " + notTraversed.get(0).data.getCoords());
 
         while(notTraversed.size() > 0)
         {
             //get the firstNode, or the first tNode in notTraversed
-            TraversalNode tNode;
-            if(firstNode.isFirstNode)
-            {
-                tNode = firstNode;
-            }
-            else
-            {
-                tNode = notTraversed.get(0);
-            }
+            TraversalNode tNode = notTraversed.get(notTraversed.size()-1);
+            //* ====================================================== debug*/System.out.println("\tEvaluating: " + tNode.data.getCoords());
             for(int i=0; i<4; i++)
             {
                 char edge = directions.get(i);
                 if(tNode.traversableEdges.containsKey(edge) && !tNode.traversableEdges.get(edge))
                 { //if there is a route to traverse at this edge and it has not yet been traversed
                     String adjCoords = board.getAdjCoords(edge, tNode.data);
-                    TraversalNode adjTNode = getTraversalNode(notTraversed, adjCoords);
+                    TraversalNode adjTNode = getTraversalNode(tNodePool, adjCoords);
                     if(adjTNode != null && adjTNode.traversableEdges.containsKey(board.getOppositeEdge(edge)))
                     {//there is a placement in this position and the adjTNode has an edge here, then THERE MUST BE A LEGAL CONNECTION BETWEEN THEM
                         tNode.traverse(edge, adjTNode);
+                        notTraversed.add(adjTNode);
+                        //* ====================================================== debug*/System.out.println("\t\tAdding to notTraversed: " + adjTNode.data.getCoords() + "(h = " + adjTNode.hScore + ", r = " + adjTNode.rScore + ")");
                     }
                     else
                     { //there is no legal adjTNode here, mark the edge as traversed
@@ -665,25 +661,18 @@ public class ScoreCalculator
                 }
             }
 
-            if(tNode.allEdgesTraversed())
-            {
-                notTraversed.remove(tNode);
-                traversed.add(tNode);
-                if(tNode.isFirstNode)
-                {
-                    tNode.isFirstNode = false;
-                }
-            }
+            notTraversed.remove(tNode);
+            traversed.add(tNode);
 
-            /* ====================================================== debug*/System.out.println("\t" + tNode.data.getPlacementString() + ", hScore = " + tNode.hScore + ", rScore = " + tNode.rScore);
+            //* ====================================================== debug*/System.out.println("\t\t\t" + tNode.data.getCoords() + ", hScore = " + tNode.hScore + ", rScore = " + tNode.rScore);
 
         }
         return traversed;
     }
 
-    private TraversalNode getTraversalNode(ArrayList<TraversalNode> notTraversed, String adjCoords)
+    private TraversalNode getTraversalNode(ArrayList<TraversalNode> tNodePool, String adjCoords)
     {
-        for(TraversalNode tNode : notTraversed)
+        for(TraversalNode tNode : tNodePool)
         {
             if(tNode.data.getCoords().equals(adjCoords))
             {
@@ -778,13 +767,13 @@ public class ScoreCalculator
     {
         HashMap<Character, Boolean> traversableEdges;
         int rScore, hScore;
-        boolean isFirstNode, isStartNode, isUsed;
+        boolean isStartNode, isUsed;
 
         TraversalNode(RouteNode rNode)
         {
             super(rNode.entryEdge, rNode.data);
 
-            isFirstNode = isStartNode = isUsed = false;
+            isStartNode = isUsed = false;
 
             rScore = (hasEdge('R'))?1:0;
             hScore = (hasEdge('H'))?1:0;
