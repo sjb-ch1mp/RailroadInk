@@ -21,7 +21,7 @@ public class LongestRouteTest
             Board board = new Board();
             for(int j=0; j<boardString.length(); j+=5)
             {
-                if(!board.addTile(boardString.substring(j, j+5))) System.out.println("Didn't add: " + boardString.substring(i, i+5));
+                if(!board.addTile(boardString.substring(j, j+5), true)) System.out.println("Didn't add: " + boardString.substring(i, i+5));
             }
 
             ScoreCalculator sc = new ScoreCalculator(board);

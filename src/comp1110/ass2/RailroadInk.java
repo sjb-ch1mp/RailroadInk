@@ -337,7 +337,7 @@ public class RailroadInk
     Board board = new Board();
     for(int i=0; i<boardString.length()-1; i+=5)
     {
-        board.addTile(boardString.substring(i, i+5));
+        board.addTile(boardString.substring(i, i+5), true);
     }
 
     ScoreCalculator sc = new ScoreCalculator(board);
@@ -358,7 +358,7 @@ public class RailroadInk
         int size = boardString.length() / 5;
         Board board = new Board();
         for (int i = 0; i < size; i++) {
-            board.addTile(boardString.substring(i * 5, i * 5 + 5));
+            board.addTile(boardString.substring(i * 5, i * 5 + 5), true);
         }
         for (int y = 0; y < 7; y++) {
             for (int x = 0; x < 7; x++) {
@@ -371,7 +371,7 @@ public class RailroadInk
                     /* ============= FIXME*/System.out.println(dice);
                     String placementString = dice + id.toString();
                     /* ============= FIXME*/System.out.println(placementString);//id + coords + orientation
-                    if (board.addTile(placementString)) {
+                    if (board.addTile(placementString, true)) {
                         result += id;
                     }
                 }
@@ -402,7 +402,7 @@ public class RailroadInk
         Board board = new Board();
         for(int i=0; i<boardString.length(); i+=5)
         {
-            board.addTile(boardString.substring(i, i+5));
+            board.addTile(boardString.substring(i, i+5), true);
         }
 
         ScoreCalculator sc = new ScoreCalculator(board);

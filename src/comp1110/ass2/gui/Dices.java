@@ -127,13 +127,14 @@ public class Dices
      * of the other player, or the computer opponent.
      * @param playerOneDiceData
      */
-    public void copyPlayerOneData(Dices playerOneDiceData)
+    public void copyPlayerDices(Dices playerOneDiceData)
     {
         String diceId;
         for(int i=1; i<=4; i++)
         {
             diceId = "D" + i;
             Tile dice = new Tile(playerOneDiceData.getDice(diceId).getId());
+            dice.updateOrientation(playerOneDiceData.getDice(diceId).getOrientation());
             dice.updateOrientation(playerOneDiceData.getDice(diceId).getOrientation());
             dices.put(diceId, dice);
         }

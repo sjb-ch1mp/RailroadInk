@@ -66,6 +66,11 @@ public class Placement
         return "" + type + id + row + column + orientation;
     }
 
+    public void updateOrientation(int newOrientation)
+    {
+        orientation = newOrientation;
+    }
+
     /*
     * Getter methods for the Placement class.
     * */

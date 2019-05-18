@@ -3,7 +3,6 @@ package comp1110.ass2;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.IntPredicate;
 
 /**
  * The ScoreCalculator class puts all necessary methods to calculate the final score in a single object.
@@ -31,12 +30,7 @@ public class ScoreCalculator
     private int centerScore;
     private int networkScore;
     private int errors;
-
-    //The directions hash map makes it possible to iterate through each edge of a tile being evaluated: N, E, S, W
-    private HashMap<Integer, Character> directions;
-
-    //The tests has map makes it possible to iterate through appropriate tests for whether an edge evaluation is necessary
-    private HashMap<Integer, IntPredicate> tests;
+    private Iterator iterator;
 
     /**
      * Whenever a new ScoreCalculator object is created. The score
@@ -45,25 +39,14 @@ public class ScoreCalculator
      */
     public ScoreCalculator(Board board)
     {
+        iterator = new Iterator();
+
         networkValues = new HashMap<>(0);
         for(int i=2; i<12; i++)
         {
             networkValues.put(i, 4*(i-1));
         }
         networkValues.put(12, 45);
-
-        directions = new HashMap<>(0);
-        directions.put(0, 'N');
-        directions.put(1, 'E');
-        directions.put(2, 'S');
-        directions.put(3, 'W');
-
-        //The parameter x can be either a row or column, depending upon which edge is being evaluated
-        tests = new HashMap<>(0);
-        tests.put(0, x -> x > 65); //if the row is greater than 'A', IntPredicate returns true
-        tests.put(1, x -> x < 6); //if the column is less than 6, IntPredicate returns true
-        tests.put(2, x -> x < 71); //if the row is less than 'G', IntPredicate returns true
-        tests.put(3, x -> x > 0); //if the column is greater than 0, IntPredicate returns true
 
         this.board = board;
         routes = compileRoutes(); //compile all the routes on the board
@@ -110,9 +93,9 @@ public class ScoreCalculator
             //getTestValue() method in conjunction to achieve an iterable edge check
             for(int i=0; i<4; i++)
             {
-                if(tests.get(i).test(tile.getTestValue(i)))
+                if(iterator.edgeIsNotOnRim(i, tile.getTestValue(i)))
                 {
-                    if(errorAtEdge(tile, directions.get(i)))
+                    if(errorAtEdge(tile, iterator.getDirection(i)))
                     {
                         errors++;
                     }
@@ -210,7 +193,6 @@ public class ScoreCalculator
             { //If there is a tile at this exit coordinate and it is part of a route that has not been evaluated
 
                 ArrayList<RouteNode> route;
-
 
                 if(board.getPlacements().get(exit).getEdge(mapEntry.getValue().charAt(0)) ==
                     mapEntry.getValue().charAt(1))
@@ -345,12 +327,12 @@ public class ScoreCalculator
             { //The routeNode is not an overpass, check all non-blank edges that are not the entry or at the edge of the board
                 for(int i=0; i<4; i++)
                 {
-                    if(routeNode.data.getEdge(directions.get(i)) != '0' &&      //If this edge is not blank
-                            directions.get(i) != routeNode.entryEdge &&         //...and this is not the entry to the node
-                            tests.get(i).test(routeNode.data.getTestValue(i)))  //...and the tile is not at the edge of the board
+                    if(routeNode.data.getEdge(iterator.getDirection(i)) != '0' &&      //If this edge is not blank
+                            iterator.getDirection(i) != routeNode.entryEdge &&         //...and this is not the entry to the node
+                            iterator.edgeIsNotOnRim(i, routeNode.data.getTestValue(i)))  //...and the tile is not at the edge of the board
                     {
 
-                        char exitEdge = directions.get(i); //the exit from the tile
+                        char exitEdge = iterator.getDirection(i); //the exit from the tile
                         char exitType = routeNode.data.getEdge(exitEdge); //the route type of the exit
                         char oppositeEdge = board.getOppositeEdge(exitEdge); //this is the edge opposite the exit edge (i.e. the entry to the adj tile)
                         adjCoords = board.getAdjCoords(exitEdge, routeNode.data); //the coordinates of the adjacent tile at this edge
@@ -430,11 +412,11 @@ public class ScoreCalculator
 
         for(int i=0; i<4; i++)
         {
-            if(tests.get(i).test(hangingTile.getTestValue(i)))
+            if(iterator.edgeIsNotOnRim(i, hangingTile.getTestValue(i)))
             {
-                if(errorAtEdge(hangingTile, directions.get(i)))
+                if(errorAtEdge(hangingTile, iterator.getDirection(i)))
                 {
-                    return directions.get(i);
+                    return iterator.getDirection(i);
                 }
             }
         }
@@ -631,7 +613,7 @@ public class ScoreCalculator
                 { //if the tNode is still not designated as a start node...
                     for(int i=0; i<4; i++)
                     {
-                        if(errorAtEdge(tNode.data, directions.get(i)))
+                        if(errorAtEdge(tNode.data, iterator.getDirection(i)))
                         { //if there is an error at any edge, tNode is a dead end
                             tNode.isStartNode = true;
                             break;
@@ -695,7 +677,7 @@ public class ScoreCalculator
 
             for(int i=0; i<4; i++)
             {//for each edge of the tNode
-                char edge = directions.get(i);
+                char edge = iterator.getDirection(i);
                 if(tNode.traversableEdges.containsKey(edge) && !tNode.traversableEdges.get(edge))
                 { //if there is a route to traverse at this edge and it has not yet been traversed
                     String adjCoords = board.getAdjCoords(edge, tNode.data);
@@ -845,9 +827,9 @@ public class ScoreCalculator
             traversableEdges = new HashMap<>(0);
             for(int i=0; i<4; i++)
             {
-                if(data.getEdge(directions.get(i)) != '0')
+                if(data.getEdge(iterator.getDirection(i)) != '0')
                 {//if the tNode has an exit at this edge, store it
-                    traversableEdges.put(directions.get(i), false);
+                    traversableEdges.put(iterator.getDirection(i), false);
                 }
             }
         }
@@ -861,9 +843,9 @@ public class ScoreCalculator
         {
             for(int i=0; i<4; i++)
             {
-                if(traversableEdges.containsKey(directions.get(i)))
+                if(traversableEdges.containsKey(iterator.getDirection(i)))
                 {
-                    traversableEdges.put(directions.get(i), false);
+                    traversableEdges.put(iterator.getDirection(i), false);
                 }
             }
 
@@ -881,7 +863,7 @@ public class ScoreCalculator
         {
             for(int i=0; i<4; i++)
             {
-                if(data.getEdge(directions.get(i)) == routeType)
+                if(data.getEdge(iterator.getDirection(i)) == routeType)
                 {
                     return true;
                 }
@@ -935,9 +917,6 @@ public class ScoreCalculator
      */
     public int getNumberOfRoutes()
     {
-        /*
-        * Need to include free hanging routes somehow
-        * */
         return routes.size();
     }
 }

@@ -182,7 +182,7 @@ public class Viewer extends Application {
                 playerData.get(1).diceData.rollDice();
 
                 //Copy the dice data into player two's PlayerData object
-                playerData.get(2).diceData.copyPlayerOneData(playerData.get(1).diceData);
+                playerData.get(2).diceData.copyPlayerDices(playerData.get(1).diceData);
 
                 if(gameMode == 'c')
                 { //add pointer to player data for computer opponent if gameMode is 'c'
@@ -435,7 +435,7 @@ public class Viewer extends Application {
                             gameStage.close(); //relaunch the game stage with player one's data
                             launchGameStage();
                             diceRef.rollDice(); //roll player one's dice
-                            playerData.get(2).diceData.copyPlayerOneData(diceRef); //copy the dices into player two's data
+                            playerData.get(2).diceData.copyPlayerDices(diceRef); //copy the dices into player two's data
                             setUpDiceUI(); //reload the dice UI
                             txtRound.setText("~ Round " + boardRef.getRound() + " ~"); //update the round notifier
                         }
@@ -484,7 +484,7 @@ public class Viewer extends Application {
                             boardRef.iterateRoundCounter(); //iterate player one's round counter
                             specialRef.resetCounterRound(); //reset the specials-used-this-round counter
                             diceRef.rollDice(); //roll the dice
-                            computerOpponent.playerData.diceData.copyPlayerOneData(diceRef);
+                            computerOpponent.playerData.diceData.copyPlayerDices(diceRef);
                             setUpDiceUI(); //reload the dice UI
                             txtRound.setText("~ Round " + boardRef.getRound() + " ~"); //update the round notifier
                         }
@@ -526,7 +526,7 @@ public class Viewer extends Application {
 
                         if(gameMode == 'c')
                         { //If there is a computer opponent, copy the dice data into it's playerData
-                            computerOpponent.playerData.diceData.copyPlayerOneData(diceRef);
+                            computerOpponent.playerData.diceData.copyPlayerDices(diceRef);
                         }
 
                         setUpDiceUI(); //reload the dice UI
@@ -698,7 +698,7 @@ public class Viewer extends Application {
 
                 if(selected.charAt(0) == 'D')
                 { //If the selected tile is a dice
-                    if(boardRef.addTile(placement.toString()))
+                    if(boardRef.addTile(placement.toString(), true))
                     { //Add the placement to the player's board (if it is legal)
                         makeBoardProper(); //reload the board
                         diceRef.useDice(selected); //use the placed dice
@@ -715,7 +715,7 @@ public class Viewer extends Application {
                 { //Otherwise the seleted tile is a special tile
                     if(specialRef.getCounterGame() < 3 && specialRef.getCounterRound() == 0)
                     { //if less than 3 special tiles have been used this game and no special tiles have been used this round
-                        if(boardRef.addTile(placement.toString()))
+                        if(boardRef.addTile(placement.toString(), true))
                         { //Add the placement to the player's board (if it is legal)
                             makeBoardProper(); //reload the board
                             specialRef.useSpecialTile(selected); //use the placed special tile
@@ -1334,7 +1334,7 @@ public class Viewer extends Application {
                 Board board = new Board();
                 for(int i=0; i<savedGame.length(); i+=5)
                 {
-                    board.addTile(savedGame.substring(i, i+5));
+                    board.addTile(savedGame.substring(i, i+5), true);
                 }
                 ScoreCalculator sc = new ScoreCalculator(board);
                 textWarning.setText("Score: " + sc.getNetworkScore() + " (network) + " +

@@ -38,7 +38,7 @@ public class RouteCompilerTest
             Board board = new Board();
             for(int j=0; j<game.length(); j+=5)
             {
-                board.addTile(game.substring(j, j+5));
+                board.addTile(game.substring(j, j+5), true);
             }
 
             ScoreCalculator sc = new ScoreCalculator(board);

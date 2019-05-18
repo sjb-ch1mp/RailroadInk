@@ -71,7 +71,7 @@ public class Board
      * @param placementString
      * @return boolean
      */
-    public boolean addTile(String placementString)
+    public boolean addTile(String placementString, boolean placeOnBoard)
     {
         //Adds a tile to the board if the placement is legal. Returns false if the placement is invalid
         Tile newTile = new Tile(placementString.substring(0, 2));
@@ -152,7 +152,10 @@ public class Board
             }
             if(legalConnection > 0)
             { //there is at least one legal connection to an adjacent tile
-                placements.put(newTile.getCoords(), newTile);
+                if(placeOnBoard)
+                {
+                    placements.put(newTile.getCoords(), newTile);
+                }
                 return true;
             }
         }
@@ -439,13 +442,6 @@ public class Board
      */
     public boolean legalMovesRemaining(Dices diceData)
     {
-        //This method uses a temporary test board so that the main board data is not affected
-        Board testBoard = new Board();
-        for(Map.Entry<String, Tile> mapEntry : placements.entrySet())
-        {
-            testBoard.getPlacements().put(mapEntry.getKey(), mapEntry.getValue());
-        }
-
         for(int i=1; i<=4; i++)
         {
             String diceID = "D" + i;
@@ -461,7 +457,7 @@ public class Board
                         for(int x=0; x<7; x++)
                         {
                             dice.addCoordinates(y + "" + x);
-                            if(testBoard.addTile(dice.getPlacementString()))
+                            if(this.addTile(dice.getPlacementString(), false))
                             {
                                 return true;
                             }
