@@ -1,4 +1,7 @@
 package comp1110.ass2;
+import comp1110.ass2.gui.Dices;
+import comp1110.ass2.gui.SpecialTiles;
+
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -344,6 +347,7 @@ public class RailroadInk
     return sc.getBasicScore();
 
 }// only one test not passed, will debug it later.
+
     /**
      * Given a valid boardString and a dice roll for the round,
      * return a String representing an ordered sequence of valid piece placements for the round.
@@ -354,33 +358,7 @@ public class RailroadInk
      */
     public static String generateMove(String boardString, String diceRoll) {
         // FIXME Task 10: generate a valid move
-        String result = "";
-        int size = boardString.length() / 5;
-        Board board = new Board();
-        for (int i = 0; i < size; i++) {
-            board.addTile(boardString.substring(i * 5, i * 5 + 5), true);
-        }
-        for (int y = 0; y < 7; y++) {
-            for (int x = 0; x < 7; x++) {
-                //build the id from the x and y values
-                StringBuilder id = new StringBuilder();
-                id.append((char) (y + 65));
-                id.append(x);
-                for (int i = 0; i < 4; i++) {
-                    String dice = diceRoll.substring(i * 4, i * 4 + 4);
-                    /* ============= FIXME*/System.out.println(dice);
-                    String placementString = dice + id.toString();
-                    /* ============= FIXME*/System.out.println(placementString);//id + coords + orientation
-                    if (board.addTile(placementString, true)) {
-                        result += id;
-                    }
-                }
-            }
-        }
-        /* ============= FIXME*/System.out.println(result);
-
-        return result;
-
+        return "";
     }
 
     /**
@@ -389,24 +367,15 @@ public class RailroadInk
      * <p>
      * * Longest railroad
      * * Longest highway
-     *
-     * @author Samuel J. Brookes (u5380100)
      * @param boardString a board string representing a completed game
      * @return integer (positive or negative) for final score (not counting expansion packs)
+     *
+     * @author Samuel J. Brookes (u5380100)
      */
     public static int getAdvancedScore(String boardString) {
         // FIXME Task 12: compute the total score including bonus points
-
-        /* ========================= FIXME*/System.out.println("Game: " + boardString);
-
-        Board board = new Board();
-        for(int i=0; i<boardString.length(); i+=5)
-        {
-            board.addTile(boardString.substring(i, i+5), true);
-        }
-
+        Board board = new Board(boardString);
         ScoreCalculator sc = new ScoreCalculator(board);
-
         return sc.getAdvancedScore();
     }
 

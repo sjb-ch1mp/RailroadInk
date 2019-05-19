@@ -937,7 +937,13 @@ public class Viewer extends Application {
          }
      }
 
-     private void showScoreStage()
+    /**
+     * This method builds and shows the score stage.
+     * The score stage contains a break down of each players'
+     * score, and allows the board to be viewed and the board
+     * string to be exported for debugging.
+     */
+    private void showScoreStage()
      {
          scoreStage = new Stage();
          scoreStage.setTitle("Scores");
@@ -1026,6 +1032,12 @@ public class Viewer extends Application {
          scoreStage.show();
      }
 
+    /**
+     * This method compiles the player scores from the game
+     * and formats them into a VBox.
+     * @param playerNumber
+     * @return
+     */
      private VBox getPlayerStats(int playerNumber)
      {
          PlayerData player;
@@ -1082,6 +1094,14 @@ public class Viewer extends Application {
          return playerStats;
      }
 
+    /**
+     * This method shows the 'Computer is thinking' window
+     * and hides the game board so that the player can not do anything
+     * while the computer is having a turn.
+     * The computer has it's turn and then the continue button
+     * is made visible so that the player can continue.
+     * @param lastRound
+     */
     private void computerOpponentHaveTurn(boolean lastRound)
     {
         gameStage.hide();
@@ -1115,7 +1135,7 @@ public class Viewer extends Application {
             });
         }
         btnContinue.setVisible(false);
-        computerOpponent.haveTurn(btnContinue);
+        computerOpponent.haveTurn(btnContinue, false);
 
         root.getChildren().addAll(computer, btnContinue);
         root.setAlignment(Pos.CENTER);
@@ -1375,6 +1395,9 @@ public class Viewer extends Application {
         tileContainer.getChildren().addAll(btnMenu, innerTileContainer);
     }
 
+    /**
+     * This is the main method for building and launching the viewer mode of the RailroadInk game.
+     */
     private void launchViewer(){
 
         boardData = new Board();

@@ -32,7 +32,7 @@ public class ComputerOpponent
      * This method has the ability to report the move that it has taken this turn
      * for debugging and for TASK 10 (RailroadInk.generateMove())
      */
-    public String haveTurn(Button btnContinue)
+    public String haveTurn(Button btnContinue, boolean simple)
     {
         StringBuilder moveReport = new StringBuilder(); //holds each placement in order
 
@@ -44,8 +44,8 @@ public class ComputerOpponent
             //get the best possible dice moves
             getDiceMoves(possibleMoves);
 
-            //get the best possible special moves if appropriate
-            if(playerData.specialData.getCounterRound() == 0 && playerData.specialData.getCounterGame() < 3)
+            //IF NOT CREATING A SIMPLE MOVE - get the best possible special moves if appropriate
+            if(!simple && playerData.specialData.getCounterRound() == 0 && playerData.specialData.getCounterGame() < 3)
             {
                 getSpecialTilesMoves(possibleMoves);
             }
@@ -90,7 +90,10 @@ public class ComputerOpponent
         playerData.specialData.resetCounterRound();
 
         //make the continue button visible
-        btnContinue.setVisible(true);
+        if(btnContinue != null)
+        {
+            btnContinue.setVisible(true);
+        }
 
         //return the placement string
         return moveReport.toString();

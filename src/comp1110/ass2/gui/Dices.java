@@ -153,22 +153,6 @@ public class Dices
     }
 
     /**
-     * This method checks if all dices have been used.
-     * @return (boolean) True if all dices have been used
-     */
-    public boolean allDicesUsed()
-    {
-        for(int i=1; i<=4; i++)
-        {
-            if(!dices.get("D" + i).isUsed())
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
      * This method is a debugging method used for the BoardTest class. It forces
      * the dices to be all of a given route type.
      *

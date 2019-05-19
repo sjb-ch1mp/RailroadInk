@@ -28,6 +28,9 @@ public class PlayerData
         this.specialData = specialData;
     }
 
+    /**
+     * This method calculates the final score for the board when the game is finished.
+     */
     public void calculateScore()
     {
         scoreCalculator = new ScoreCalculator(boardData);

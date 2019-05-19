@@ -18,12 +18,7 @@ public class LongestRouteTest
         for(int i=0; i<SampleGames.COMPLETED_GAMES.length; i++)
         {
             String boardString = SampleGames.COMPLETED_GAMES[i];
-            Board board = new Board();
-            for(int j=0; j<boardString.length(); j+=5)
-            {
-                if(!board.addTile(boardString.substring(j, j+5), true)) System.out.println("Didn't add: " + boardString.substring(i, i+5));
-            }
-
+            Board board = new Board(boardString);
             ScoreCalculator sc = new ScoreCalculator(board);
 
             int longestRailroad = sc.getLongestRailroad();

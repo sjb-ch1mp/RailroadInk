@@ -26,7 +26,36 @@ public class Board
 
     //The fields are public so that they can be freely accessed by the ScoreCalculator
 
+    /**
+     * This is the basic constructor that builds an empty board
+     */
     public Board()
+    {
+        initialise();
+    }
+
+    /**
+     * This is an overloaded constructor that builds a board
+     * from a boardString.
+     * @param boardString
+     */
+    public Board(String boardString)
+    {
+        initialise();
+        while(this.toString().length() != boardString.length())
+        {
+            for(int i=0; i<boardString.length(); i+=5)
+            {
+                this.addTile(boardString.substring(i, i+5), true);
+            }
+        }
+    }
+
+    /**
+     * This method initialises all fields in a Board object. This
+     * was created to clean up the overloaded constructors.
+     */
+    private void initialise()
     {
         roundCounter = 1;
         placements = new HashMap<>(0);

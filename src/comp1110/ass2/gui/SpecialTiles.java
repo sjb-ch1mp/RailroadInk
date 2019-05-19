@@ -114,18 +114,4 @@ public class SpecialTiles
     {
         return specialTiles.get(sTile);
     }
-
-    /**
-     * This method deselects all special tile so that when the Special Tiles UI is
-     * reloaded, there are no special tiles selected.
-     */
-    public void deselectAll()
-    {
-        specialTiles.get("S1").deselectTile();
-        specialTiles.get("S2").deselectTile();
-        specialTiles.get("S3").deselectTile();
-        specialTiles.get("S4").deselectTile();
-        specialTiles.get("S5").deselectTile();
-        specialTiles.get("S6").deselectTile();
-    }
 }
