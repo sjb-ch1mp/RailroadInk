@@ -489,50 +489,6 @@ public class Viewer extends Application {
                             txtRound.setText("~ Round " + boardRef.getRound() + " ~"); //update the round notifier
                         }
                     }
-
-                    /*
-                    if(btnRoll.getText().equals("End Game"))
-                    { //If this is the last round
-                        if(gameMode == 's')
-                        { //Calculate the score and end the game
-                            gameFinished = true;
-                            btnRoll.setVisible(false); //set the roll button to invisible so the player cannot press it
-                            showScoreStage();
-                        }
-                        else
-                        { //gameMode == 'c'
-                            //Calculate the scores, and launch the endGameStage to declare the winner
-                            computerOpponentHaveTurn(true);
-                            gameFinished = true;
-                            btnRoll.setVisible(false); //set the roll button to invisible so the player cannot press it
-                            showScoreStage();
-                        }
-                    }
-
-                    else
-                    { //Otherwise it is not the last round
-                        if(gameMode == 'c')
-                        { //Player one's turn is finished, so the computer opponent has a turn
-
-                            //Everything to do with having a turn (e.g. round counters, tracking specials, etc)
-                            //should be handled within the computer opponent class
-                            computerOpponentHaveTurn(false);
-                            gameStage.hide();
-                        }
-
-                        boardRef.iterateRoundCounter(); //iterate player one's round counter
-                        specialRef.resetCounterRound(); //reset the specials-used-this-round counter
-                        diceRef.rollDice(); //roll the dice
-
-                        if(gameMode == 'c')
-                        { //If there is a computer opponent, copy the dice data into it's playerData
-                            computerOpponent.playerData.diceData.copyPlayerDices(diceRef);
-                        }
-
-                        setUpDiceUI(); //reload the dice UI
-                        txtRound.setText("~ Round " + boardRef.getRound() + " ~"); //update the round notifier
-                    }
-                    */
                 }
                 else
                 { //Otherwise there are still legal moves that can be made
@@ -665,6 +621,7 @@ public class Viewer extends Application {
             }
             else if(ae.getButton().equals(MouseButton.SECONDARY))
             { //If the right mouse button was click - ROTATE THE TILE
+                selected = null;
                 if(tile.getId().charAt(0) == 'D')
                 { //If the target tile is a dice
                     diceRef.rotateDice(tile.getId()); //rotate the dice
@@ -689,7 +646,7 @@ public class Viewer extends Application {
         tile.setOnMouseClicked(ae ->
         {
             //If there is no placement to be made, do nothing
-            if(gameFinished || placement == null) return;
+            if(gameFinished || placement == null || selected == null) return;
 
             if(ae.getButton().equals(MouseButton.PRIMARY))
             { //If the board tile is clicked with the left mouse button
@@ -1158,7 +1115,7 @@ public class Viewer extends Application {
             });
         }
         btnContinue.setVisible(false);
-        computerOpponent.haveAdvancedTurn(btnContinue);
+        computerOpponent.haveTurn(btnContinue);
 
         root.getChildren().addAll(computer, btnContinue);
         root.setAlignment(Pos.CENTER);
