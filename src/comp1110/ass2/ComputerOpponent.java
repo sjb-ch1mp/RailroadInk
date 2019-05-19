@@ -7,6 +7,7 @@ import javafx.scene.control.Button;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * The ComputerOpponent class will hold all player data for the computer opponent
@@ -18,33 +19,6 @@ public class ComputerOpponent
 {
     private Iterator iterator;
     public PlayerData playerData;
-    private int[][] indexPermutations =
-            {
-                    {1, 2, 3, 4},
-                    {1, 2, 4, 3},
-                    {1, 3, 2, 4},
-                    {1, 3, 4, 2},
-                    {1, 4, 2, 3},
-                    {1, 4, 3, 2},
-                    {2, 1, 3, 4},
-                    {2, 1, 4, 3},
-                    {2, 3, 1, 4},
-                    {2, 3, 4, 1},
-                    {2, 4, 1, 3},
-                    {2, 4, 3, 1},
-                    {3, 1, 2, 4},
-                    {3, 1, 4, 2},
-                    {3, 2, 1, 4},
-                    {3, 2, 4, 1},
-                    {3, 4, 1, 2},
-                    {3, 4, 2, 1},
-                    {4, 1, 2, 3},
-                    {4, 1, 3, 2},
-                    {4, 2, 1, 3},
-                    {4, 2, 3, 1},
-                    {4, 3, 1, 2},
-                    {4, 3, 2, 1}
-            };
 
     public ComputerOpponent(PlayerData playerData)
     {
@@ -135,7 +109,6 @@ public class ComputerOpponent
         {
             for(int column = 0; column < 7; column++)
             {
-
                 for(int orientation = 0; orientation < 8; orientation++)
                 {
                     tile.updateOrientation(orientation);
@@ -184,414 +157,231 @@ public class ComputerOpponent
         return testBoard;
     }
 
-    private Dices buildTestDice()
+    public String haveAdvancedTurn(Button btnContinue)
     {
-        Dices testDice = new Dices();
-        testDice.copyPlayerDices(playerData.diceData);
-        return testDice;
-    }
-
-    private SpecialTiles buildTestSpecials()
-    {
-        SpecialTiles testSpecials = new SpecialTiles();
-        for(int i=1; i<=4; i++)
-        {
-            String id = "S" + i;
-            if(playerData.specialData.getSpecialTile(id).isUsed())
-            {
-                testSpecials.useSpecialTile(id);
-            }
-        }
-        return testSpecials;
-    }
-
-    public String haveAdvancedTurn()
-    {
-        ArrayList<PossiblePlacement[]> possibleSequences = new ArrayList<>(0);
-
-        for(int[] permutation : indexPermutations)
-        {
-            possibleSequences.add(getBestSequence(permutation));
-        }
-
-        //get the one sequence from this subset that has the highest score? - might be too greedy
-        PossiblePlacement[] maxSequence = new PossiblePlacement[4];
-        int maxScore = Integer.MIN_VALUE;
-        for(PossiblePlacement[] possibleSequence : possibleSequences)
-        {
-            int score = getSequenceScore(possibleSequence);
-            if(maxScore < score)
-            {
-                maxSequence = possibleSequence;
-                maxScore = score;
-            }
-        }
-
-        if(playerData.specialData.getCounterGame() < 3 && playerData.specialData.getCounterRound() == 0)
-        {
-            //once you have the highest scoring placement sequence - check if
-            //adding a special tile at some point in the sequence will improve the score and
-            //then add that placement (or don't)
-        }
-
         StringBuilder moveReport = new StringBuilder();
-        for(PossiblePlacement placement : maxSequence)
+        HashMap<String, String> freeExits;
+        HashMap<String, String> freeEdges;
+
+        while(playerData.boardData.legalMovesRemaining(playerData.diceData) && !playerData.diceData.allDicesUsed())
         {
-            playerData.boardData.addTile(placement.toString(), true);
-            if(placement.id.charAt(0) == 'S')
-            { //placement is a SpecialTile
-                playerData.specialData.useSpecialTile(placement.id);
+            String placement;
+            String tileId;
+
+            //Separate into exits and routes
+            if(playerData.boardData.getPlacements().isEmpty())
+            { //this is the first turn - place one dice
+                //get a first move
+
+                String firstMove = getRandomExitConnection(playerData.boardData.getExitCoords());
+                placement = firstMove.substring(0, 5);
+                tileId = firstMove.substring(5);
+
             }
             else
-            { //placement is a Dice
-                playerData.diceData.useDice(placement.id);
+            { //tiles are on the board
+
+                //get all free exits
+                freeExits = new HashMap<>(0);
+                getFreeExits(freeExits);
+
+                //get all free edges
+                freeEdges = new HashMap<>(0);
+                getFreeEdges(freeEdges);
+
+                //attempt to make each placement on a free edge
+                String randomMove;
+                if(freeEdges.size() > 0)
+                {
+                    randomMove = getRandomEdgeConnection(freeEdges);
+                    if(randomMove.equals(""))
+                    {//if no placements can be made to a route - attempt to connect to an exit
+                        randomMove = getRandomExitConnection(freeExits);
+                    }
+                }
+                else
+                {
+                    randomMove = getRandomExitConnection(freeExits);
+                }
+
+                placement = randomMove.substring(0, 5);
+                tileId = randomMove.substring(5);
             }
-            moveReport.append(placement.toString());
+
+            //add random placement to board, use dice, add to moveReport
+            playerData.boardData.addTile(placement, true);
+            if(tileId.charAt(0) == 'D')
+            {
+                playerData.diceData.useDice(tileId);
+            }
+            else
+            {
+                playerData.specialData.useSpecialTile(tileId);
+            }
+            moveReport.append(placement);
+
         }
 
+        playerData.boardData.iterateRoundCounter();
+        playerData.specialData.resetCounterRound();
+        btnContinue.setVisible(true);
         return moveReport.toString();
     }
 
-    private PossiblePlacement[] getBestSequence(int[] indices)
+    private String getRandomExitConnection(HashMap<String, String> freeExits)
     {
-        PossiblePlacement[] bestSequence = new PossiblePlacement[4];
-        Board testBoard = buildTestBoard(playerData.boardData);
+        //get all possible placements
+        ArrayList<PossiblePlacement> possiblePlacements = getPossiblePlacements(freeExits);
 
-        for(int i=0; i<indices.length; i++)
-        {
-            PossiblePlacement possiblePlacement = new PossiblePlacement(playerData.diceData.getDice("D" + indices[i]), "D" + indices[i]);
-            possiblePlacement.evaluatePlacement(testBoard);
-            testBoard.addTile(possiblePlacement.toString(), true);
-            bestSequence[i] = possiblePlacement;
-        }
-
-        return bestSequence;
+        //return a randomly selected legal placement
+        Random rand = new Random();
+        PossiblePlacement randomPlacement = possiblePlacements.get(rand.nextInt(possiblePlacements.size()));
+        return randomPlacement.toString() + randomPlacement.id;
     }
 
-    private int getSequenceScore(PossiblePlacement[] placementSequence)
+    private String getRandomEdgeConnection(HashMap<String, String> freeEdges)
     {
-        Board testBoard = buildTestBoard(playerData.boardData);
-        for(PossiblePlacement placement : placementSequence)
+        //get all the possible placements
+        ArrayList<PossiblePlacement> possiblePlacements = getPossiblePlacements(freeEdges);
+
+        if(possiblePlacements.size() > 1)
         {
-            testBoard.addTile(placement.toString(), true);
-        }
-
-        ScoreCalculator sc = new ScoreCalculator(testBoard);
-        return sc.getAdvancedScore();
-    }
-
-    class PossiblePlacement extends Placement
-    {
-        /*
-         *  ==== PLACEMENT CATEGORIES ====
-         *  Ordered from best case to worst case
-         *
-         *  badPlacement
-         *  1 = not a bad placement
-         *  2 = leads route off board
-         *  3 = blocks an exit
-         *
-         *  goodPlacement
-         *  1 = connects route to an exit
-         *  2 = connects 2 routes together
-         *  3 = adds to an existing route and maintains route type
-         *  4 = adds to an existing route and breaks route type
-         *  5 = connects to an exit (i.e. starts new route)
-         *  6 = placement is legal
-         */
-        int badPlacement;
-        int goodPlacement;
-        String id;
-
-        PossiblePlacement(Tile tile, String id)
-        {
-            super(tile);
-            badPlacement = goodPlacement = 0;
-            this.id = id;
-        }
-
-        void evaluatePlacement(Board board)
-        {
-            /*
-             * Find the best possible placement given the state of the
-             * board and the specific tile.
-             */
-            ArrayList<PossiblePlacement> possiblePlacements = new ArrayList<>(0);
-
-            for (char row = 'A'; row <= 'G'; row++)
+            //filter placements by score
+            possiblePlacements = filterByScore(possiblePlacements);
+            if(possiblePlacements.size() > 1)
             {
-                for (int column = 0; column < 7; column++)
-                {
-                    for (int orientation = 0; orientation < 7; orientation++)
-                    {
-                        Tile tile = new Tile(this.getFullId());
-                        tile.updateOrientation(orientation);
-                        PossiblePlacement possiblePlacement = new PossiblePlacement(tile, id);
-                        possiblePlacement.updateCoordinates("" + row + column);
-                        if (board.addTile(possiblePlacement.toString(), false))
-                        {
-                            possiblePlacement.evaluateBad(board, tile);
-                            possiblePlacement.evaluateGood(board, tile);
-                            possiblePlacements.add(possiblePlacement);
-                        }
-                    }
-                }
-            }
-
-            //split into badPlacement categories 1, 2 and 3
-            //check through 1 first - if this is not empty - set the placement to the lowest goodPlacement value
-            //if 1 is empty - set the placement to the lowest goodPlacement from 2
-            //if 2 is empty - set the placement to the lowest goodPlacement from 3
-            ArrayList<PossiblePlacement> badPlacements1 = new ArrayList<>(0);
-            ArrayList<PossiblePlacement> badPlacements2 = new ArrayList<>(0);
-            ArrayList<PossiblePlacement> badPlacements3 = new ArrayList<>(0);
-            for (PossiblePlacement possiblePlacement : possiblePlacements)
-            {
-                switch (possiblePlacement.badPlacement)
-                {
-                    case 1:
-                    {
-                        badPlacements1.add(possiblePlacement);
-                        break;
-                    }
-                    case 2:
-                    {
-                        badPlacements2.add(possiblePlacement);
-                        break;
-                    }
-                    case 3:
-                        badPlacements3.add(possiblePlacement);
-                }
-            }
-
-            if (!badPlacements1.isEmpty())
-            {
-                possiblePlacements = badPlacements1;
-            } else if (!badPlacements2.isEmpty())
-            {
-                possiblePlacements = badPlacements2;
-            } else
-            { //all placements block an exit
-                possiblePlacements = badPlacements3;
-            }
-
-            int minGoodPlacement = Integer.MAX_VALUE;
-            PossiblePlacement minPlacement = null;
-            for (PossiblePlacement possiblePlacement : possiblePlacements)
-            {
-                if (minGoodPlacement > possiblePlacement.goodPlacement)
-                {
-                    minGoodPlacement = possiblePlacement.goodPlacement;
-                    minPlacement = possiblePlacement;
-                }
-            }
-
-            this.updateCoordinates(minPlacement.getCoords());
-            this.updateOrientation(minPlacement.getOrientation());
-        }
-
-        void evaluateBad(Board board, Tile tile)
-        {
-
-            if (blocksExit(board, tile))
-            {
-                this.badPlacement = 3;
-            }
-            else if (leadsRouteOffBoard(board, tile))
-            {
-                this.badPlacement = 2;
-            }
-            this.badPlacement = 1;
-        }
-
-        void evaluateGood(Board board, Tile tile)
-        {
-            if (connectsRouteToExit(board, tile))
-            {
-                this.goodPlacement = 1;
-            }
-            else if (connectsTwoRoutes(board, tile))
-            {
-                this.goodPlacement = 2;
-            }
-            else if (maintainsRouteType(board, tile))
-            {
-                this.goodPlacement = 3;
-            }
-            else if (breaksRouteType(board, tile))
-            {
-                this.goodPlacement = 4;
-            }
-            else if (connectsToExit(board, tile))
-            {
-                this.goodPlacement = 5;
+                //return a random placement
+                Random rand = new Random();
+                PossiblePlacement randomPlacement = possiblePlacements.get(rand.nextInt(possiblePlacements.size()));
+                return randomPlacement.toString() + randomPlacement.id;
             }
             else
-            { //it is a legal placement
-                this.goodPlacement = 6;
-            }
-        }
-
-        boolean blocksExit(Board board, Tile tile)
-        {
-            if(board.getExitCoords().containsKey(this.getCoords()))
-            {//this placement is on an exit coordinate
-                char exitEdge = board.getExitCoords().get(this.getCoords()).charAt(0);
-                char exitType = board.getExitCoords().get(this.getCoords()).charAt(1);
-                if(tile.getEdge(exitEdge) != exitType)
-                { //if there is not a valid connection to the exit, the placement blocks the exit
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        boolean leadsRouteOffBoard(Board board, Tile tile)
-        {
-            for(int i=0; i<4; i++)
             {
-                if(!iterator.edgeIsNotOnRim(i, tile.getTestValue(i)))
-                { //this edge is on the rim of the board
-                    if(!board.getExitCoords().containsKey(this.getCoords()))
-                    { //if this is at an exit coordinate, then it must be a legal connection (see blocksExit())
-                        if(tile.getEdge(iterator.getDirection(i)) != '0')
-                        { //if the edge of the tile is not blank, then it leads the route off the board
-                            return true;
-                        }
-                    }
-                }
+                return possiblePlacements.get(0).toString() + possiblePlacements.get(0).id;
             }
-
-            return false;
         }
-
-        boolean connectsRouteToExit(Board board, Tile tile)
+        else if(possiblePlacements.size() == 1)
         {
-            if(board.getExitCoords().containsKey(this.getCoords()))
-            {//if placement is on an exit coordinate
-                char exitEdge = board.getExitCoords().get(this.getCoords()).charAt(0);
-                char exitType = board.getExitCoords().get(this.getCoords()).charAt(1);
-                if(tile.getEdge(exitEdge) == exitType)
-                { //there is a valid connection to the exit
+            return possiblePlacements.get(0).toString() + possiblePlacements.get(0).id;
+        }
+        return "";
+    }
 
-                    for(int i=0; i<4; i++)
-                    {
-                        if(iterator.getDirection(i) != exitEdge)
-                        { //if this is an edge other than the edge connected to the exit
-                            if(tile.getEdge(iterator.getDirection(i)) != '0')
-                            {//if the edge is not blank
-                                String adjCoords = board.getAdjCoords(iterator.getDirection(i), tile);
-                                if(board.getPlacements().containsKey(adjCoords))
-                                { //if there is a placement at the adjacent coordinates
-                                    Tile adjTile = board.getTile(adjCoords);
-                                    if(tile.getEdge(iterator.getDirection(i)) == adjTile.getEdge(board.getOppositeEdge(iterator.getDirection(i))))
-                                    { //if there is a valid connection to the adjacent tile
+    private ArrayList<PossiblePlacement> getPossiblePlacements(HashMap<String, String> connections)
+    {
+        ArrayList<PossiblePlacement> possiblePlacements = new ArrayList<>(0);
 
-                                        //there is a valid connection to an exit AND a route
-                                        return true;
-                                    }
-                                }
+        for(int i=1; i<=4; i++)
+        {
+            String id = "D" + i;
+            if(!playerData.diceData.getDice(id).isUsed())
+            { //if the dice has not been used
+                Tile dice = playerData.diceData.getDice(id);
+                for(Map.Entry<String, String> mapEntry : connections.entrySet())
+                { //for each free exit/edge
+                    for(int orientation = 0; orientation < 8 ; orientation++)
+                    { //for each orientation
+
+                        dice.updateOrientation(orientation);
+                        dice.fixOrientation();
+                        PossiblePlacement possiblePlacement = new PossiblePlacement(dice, id);
+                        possiblePlacement.updateCoordinates(mapEntry.getKey());
+
+                        if(dice.getEdge(mapEntry.getValue().charAt(0)) == mapEntry.getValue().charAt(1))
+                        { //if there is a valid connection to the free exit/edge
+                            if(playerData.boardData.addTile(possiblePlacement.toString(), false))
+                            { //if this is a legal placement
+                                possiblePlacements.add(possiblePlacement);
                             }
                         }
                     }
                 }
             }
-            return false;
         }
 
-        boolean connectsTwoRoutes(Board board, Tile tile)
-        {
-            int connectionCount = 0;
+        return possiblePlacements;
+    }
 
+    private ArrayList<PossiblePlacement> filterByScore(ArrayList<PossiblePlacement> possiblePlacements)
+    {
+        //calculate the score for each possible placement
+        for(PossiblePlacement possiblePlacement : possiblePlacements)
+        {
+            Board testBoard = buildTestBoard(playerData.boardData);
+            testBoard.addTile(possiblePlacement.toString(), true);
+            ScoreCalculator sc = new ScoreCalculator(testBoard);
+            possiblePlacement.score = sc.getAdvancedScore() + sc.getErrors();
+        }
+
+        //get the maximum score
+        int maxScore = Integer.MIN_VALUE;
+        for(PossiblePlacement possiblePlacement : possiblePlacements)
+        {
+            if(maxScore < possiblePlacement.score)
+            {
+                maxScore = possiblePlacement.score;
+            }
+        }
+
+        //get all possible placements with a score that equals the maximum
+        ArrayList<PossiblePlacement> filtered = new ArrayList<>(0);
+        for(PossiblePlacement possiblePlacement : possiblePlacements)
+        {
+            if(possiblePlacement.score == maxScore)
+            {
+                filtered.add(possiblePlacement);
+            }
+        }
+
+        return filtered;
+    }
+
+    private void getFreeExits(HashMap<String, String> freeExits)
+    {
+        for(Map.Entry<String, String> mapEntry : playerData.boardData.getExitCoords().entrySet())
+        { //for each exit coordinate
+            if(!playerData.boardData.getPlacements().containsKey(mapEntry.getKey()))
+            { //if there is not a tile there, it is a free exit
+                freeExits.put(mapEntry.getKey(), mapEntry.getValue());
+            }
+        }
+    }
+
+    private void getFreeEdges(HashMap<String, String> freeEdges)
+    {
+        for(Map.Entry<String, Tile> mapEntry : playerData.boardData.getPlacements().entrySet())
+        { //for each tile currently on the board
+            Tile tile = mapEntry.getValue();
             for(int i=0; i<4; i++)
             {
                 if(iterator.edgeIsNotOnRim(i, tile.getTestValue(i)))
-                {//if this edge is not on the rim of the board
-                    String adjCoords = board.getAdjCoords(iterator.getDirection(i), tile);
-                    if(board.getPlacements().containsKey(adjCoords))
-                    { //if there is a placement at these coordinates
-                        Tile adjTile = board.getTile(adjCoords);
-                        if(tile.getEdge(iterator.getDirection(i)) == adjTile.getEdge(board.getOppositeEdge(iterator.getDirection(i))))
-                        { //if there is a valid connection to the adjacent tile
-                            connectionCount++;
-                        }
-                    }
-                }
-            }
-
-            return connectionCount > 1;
-        }
-
-        boolean maintainsRouteType(Board board, Tile tile)
-        {
-            for(int i=0; i<4; i++)
-            {
-                if(iterator.edgeIsNotOnRim(i, tile.getTestValue(i)))
-                {//if this edge is not on the rim of the board
-                    String adjCoords = board.getAdjCoords(iterator.getDirection(i), tile);
-                    if(board.getPlacements().containsKey(adjCoords))
-                    { //if there is a placement at these coordinates
-                        Tile adjTile = board.getTile(adjCoords);
-                        if(tile.getEdge(iterator.getDirection(i)) == adjTile.getEdge(board.getOppositeEdge(iterator.getDirection(i))))
-                        { //if there is a valid connection to the adjacent tile
-
-                            //return true if this route type continues out another edge
-                            return countEdgeType(tile, tile.getEdge(iterator.getDirection(i))) > 1;
-                        }
-                    }
-                }
-            }
-            return false;
-        }
-
-        boolean breaksRouteType(Board board, Tile tile)
-        {
-            for(int i=0; i<4; i++)
-            {
-                if(iterator.edgeIsNotOnRim(i, tile.getTestValue(i)))
-                {//if this edge is not on the rim of the board
-                    String adjCoords = board.getAdjCoords(iterator.getDirection(i), tile);
-                    if(board.getPlacements().containsKey(adjCoords))
-                    { //if there is a placement at these coordinates
-                        Tile adjTile = board.getTile(adjCoords);
-                        if(tile.getEdge(iterator.getDirection(i)) == adjTile.getEdge(board.getOppositeEdge(iterator.getDirection(i))))
-                        { //if there is a valid connection to the adjacent tile
-
-                            //return true if this is the only edge with that route
-                            return countEdgeType(tile, tile.getEdge(iterator.getDirection(i))) == 1;
-                        }
-                    }
-                }
-            }
-            return false;
-        }
-
-        boolean connectsToExit(Board board, Tile tile)
-        {
-            if(board.getExitCoords().containsKey(this.getCoords()))
-            {//this placement is on an exit coordinate
-                char exitEdge = board.getExitCoords().get(this.getCoords()).charAt(0);
-                char exitType = board.getExitCoords().get(this.getCoords()).charAt(1);
-                if(tile.getEdge(exitEdge) == exitType)
-                { //if there is a valid connection to the exit
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        int countEdgeType(Tile tile, char edgeType)
-        {
-            char[] edges = tile.getEdges();
-            int edgeTypeCount = 0;
-            for(int j=0; j<4; j++)
-            {
-                if(edges[j] == edgeType)
                 {
-                    edgeTypeCount++;
+                    char edge = iterator.getDirection(i);
+                    String adjCoords = playerData.boardData.getAdjCoords(edge, tile);
+                    if(tile.getEdge(edge) != '0' && !playerData.boardData.getPlacements().containsKey(adjCoords))
+                    { //if there is a valid exit at this edge, and there is no placement - this is a free edge
+
+                        //connectionInfo records which edge must be which route type for a tile to be placed at these coordinates
+                        String connectionInfo = "" + playerData.boardData.getOppositeEdge(edge) + tile.getEdge(edge);
+                        freeEdges.put(adjCoords, connectionInfo);
+                    }
                 }
             }
-            return edgeTypeCount;
+        }
+    }
+
+    class PossiblePlacement extends Placement
+    {
+        Tile tile;
+        String id;
+        int score;
+
+        PossiblePlacement(Tile tile, String id)
+        {
+            super(tile);
+            this.tile = tile;
+            this.id = id;
+            score = 0;
         }
     }
 }

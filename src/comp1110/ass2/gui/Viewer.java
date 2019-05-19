@@ -1158,7 +1158,7 @@ public class Viewer extends Application {
             });
         }
         btnContinue.setVisible(false);
-        computerOpponent.haveTurn(btnContinue);
+        computerOpponent.haveAdvancedTurn(btnContinue);
 
         root.getChildren().addAll(computer, btnContinue);
         root.setAlignment(Pos.CENTER);

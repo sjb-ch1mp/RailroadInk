@@ -321,11 +321,6 @@ public class Tile
         return selected;
     }
 
-    public char getType()
-    {
-        return getType();
-    }
-
     public void fixOrientation()
     {
         switch(id)
@@ -456,5 +451,18 @@ public class Tile
         {
             this.updateOrientation(orientation - 4);
         }
+    }
+
+    public int getNumberOfExits()
+    {
+        int exits = 0;
+        for(char edge : edges)
+        {
+            if(edge != '0')
+            {
+                exits++;
+            }
+        }
+        return exits;
     }
 }
