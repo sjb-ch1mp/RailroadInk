@@ -358,6 +358,7 @@ public class RailroadInk
         int size = boardString.length() / 5;
         Board board = new Board();
         for (int i = 0; i < size; i++) {
+//            System.out.println("Test: " + boardString.substring(i * 5, i * 5 +5));
             board.addTile(boardString.substring(i * 5, i * 5 + 5));
         }
         for (int y = 0; y < 7; y++) {
@@ -367,13 +368,15 @@ public class RailroadInk
                 id.append((char) (y + 65));
                 id.append(x);
                 for (int i = 0; i < 4; i++) {
-                    String dice = diceRoll.substring(i * 4, i * 4 + 4);
-                    /* ============= FIXME*/System.out.println(dice);
-                    String placementString = dice + id.toString();
-                    /* ============= FIXME*/System.out.println(placementString);//id + coords + orientation
-                    if (board.addTile(placementString)) {
-                        result += id;
+                    String dice = diceRoll.substring(i * 2, i * 2 + 2);
+                    String tmp = dice + id.toString();
+                    for (int o =0; o<6; o++) {
+                        String placementString = tmp +o;
+                        if (board.addTile(placementString)) {
+                            result += placementString;
+                        }
                     }
+
                 }
             }
         }
