@@ -1,7 +1,4 @@
 package comp1110.ass2;
-import comp1110.ass2.gui.Dices;
-import comp1110.ass2.gui.SpecialTiles;
-
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -358,6 +355,7 @@ public class RailroadInk
      */
     public static String generateMove(String boardString, String diceRoll) {
         // FIXME Task 10: generate a valid move
+
         String result = "";
         int size = boardString.length() / 5;
         Board board = new Board();
@@ -365,31 +363,52 @@ public class RailroadInk
 //            System.out.println("Test: " + boardString.substring(i * 5, i * 5 +5));
             board.addTile(boardString.substring(i * 5, i * 5 + 5), true);
         }
-        for (int y = 0; y < 7; y++) {
-            for (int x = 0; x < 7; x++) {
-                //build the id from the x and y values
-                StringBuilder id = new StringBuilder();
-                id.append((char) (y + 65));
-                id.append(x);
-                for (int i = 0; i < 4; i++) {
-                    String dice = diceRoll.substring(i * 2, i * 2 + 2);
-                    String tmp = dice + id.toString();
-                    for (int o =0; o<10; o++) {
-                        String placementString = tmp +o;
-                        if (board.addTile(placementString, true)) {
-                            result += placementString;
-                        }
-                    }
 
+        boolean placementMade = true;
+        while(diceRoll.length() > 0 && placementMade)
+        {
+            placementMade = false;
+
+            for (int i = 0; i < diceRoll.length(); i+=2) {
+                String id = diceRoll.substring(i, i + 2);
+                Tile dice = new Tile(id);
+
+                boolean diceAdded = false;
+                for (int y = 0; y < 7; y++) {
+                    for (int x = 0; x < 7; x++) {
+                        //build the id from the x and y values
+                        StringBuilder coords = new StringBuilder();
+                        coords.append((char) (y + 65));
+                        coords.append(x);
+
+                        //String tmp = dice + id.toString();
+                        for (int o = 0; o < 8; o++) {
+                            //String placementString = tmp + o;
+
+                            dice.updateOrientation(o);
+                            dice.fixOrientation();
+                            String placementString = dice.getId() + coords.toString() + dice.getOrientation();
+
+                            if (board.addTile(placementString, true)) {
+                                result += placementString;
+                                diceAdded = true;
+                                placementMade = true;
+                                String head = diceRoll.substring(0, i);
+                                String tail = diceRoll.substring(i + 2);
+                                diceRoll = head + tail;
+                                break;
+                            }
+                        }
+                        if(diceAdded) break;
+                    }
+                    if(diceAdded) break;
                 }
             }
+
         }
-        /* ============= FIXME*/System.out.println(result);
+        /* ============= FIXME*/
 
         return result;
-
-
-
     }
 
     /**
