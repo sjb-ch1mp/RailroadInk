@@ -117,18 +117,6 @@ public class ImageHandler
      */
     private static ImageView rotateImage(ImageView img)
     {
-        /* THIS MIRRORING CODE IS CAUSING STRANGE BUGS, I'LL COME BACK TO IT
-        if(orientation >= 4)
-        {
-            Rotate rotate = new Rotate();
-            rotate.setPivotX(IMAGE_DIMENSIONS/2);
-            rotate.setPivotY(IMAGE_DIMENSIONS/2);
-            rotate.setAxis(Rotate.Y_AXIS);
-            rotate.setAngle(180);
-            img.getTransforms().add(rotate);
-            orientation -= 4;
-        }
-        */
         for(int i=0; i<orientation; i++)
         {
             Rotate rotate = new Rotate();

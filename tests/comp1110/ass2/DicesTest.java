@@ -38,7 +38,7 @@ public class DicesTest
     public void dicesCopyPlayerData()
     {
         /*
-         * This tests whether the copyPlayerOneData() method is functioning as expected.
+         * This tests whether the copyPlayerDices() method is functioning as expected.
          * */
         Dices dicesPlayerOne = new Dices();
         Dices dicesPlayerTwo = new Dices();
@@ -46,7 +46,7 @@ public class DicesTest
         for(int i=0; i<10; i++)
         {
             dicesPlayerOne.rollDice();
-            dicesPlayerTwo.copyPlayerOneData(dicesPlayerOne);
+            dicesPlayerTwo.copyPlayerDices(dicesPlayerOne);
             assertTrue("Dices of player one (" + dicesPlayerOne.toString() + ") are not the same as the " +
                     "dices of player two (" + dicesPlayerTwo.toString() + ")", dicesPlayerOne.toString().equals(dicesPlayerTwo.toString()));
         }

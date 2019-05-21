@@ -35,12 +35,7 @@ public class RouteCompilerTest
         {
             String game = SampleGames.COMPLETED_GAMES[i];
 
-            Board board = new Board();
-            for(int j=0; j<game.length(); j+=5)
-            {
-                board.addTile(game.substring(j, j+5));
-            }
-
+            Board board = new Board(game);
             ScoreCalculator sc = new ScoreCalculator(board);
             Assert.assertEquals("Sample Game " + (i + 1) + " has " + numberOfRoutes[i] + " routes. Returned: " + sc.getNumberOfRoutes() + "\nBoard string: " + game,
                     numberOfRoutes[i], sc.getNumberOfRoutes());

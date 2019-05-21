@@ -1,4 +1,7 @@
 package comp1110.ass2;
+import comp1110.ass2.gui.Dices;
+import comp1110.ass2.gui.SpecialTiles;
+
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -337,7 +340,7 @@ public class RailroadInk
     Board board = new Board();
     for(int i=0; i<boardString.length()-1; i+=5)
     {
-        board.addTile(boardString.substring(i, i+5));
+        board.addTile(boardString.substring(i, i+5), true);
     }
 
     ScoreCalculator sc = new ScoreCalculator(board);
@@ -345,6 +348,7 @@ public class RailroadInk
 
 }// only one test not passed, will debug it later.
     /**
+     * @author Thoraya Al-Sabti (u6136358)
      * Given a valid boardString and a dice roll for the round,
      * return a String representing an ordered sequence of valid piece placements for the round.
      * @param boardString a board string representing the current state of the game as at the start of the round
@@ -359,7 +363,7 @@ public class RailroadInk
         Board board = new Board();
         for (int i = 0; i < size; i++) {
 //            System.out.println("Test: " + boardString.substring(i * 5, i * 5 +5));
-            board.addTile(boardString.substring(i * 5, i * 5 + 5));
+            board.addTile(boardString.substring(i * 5, i * 5 + 5), true);
         }
         for (int y = 0; y < 7; y++) {
             for (int x = 0; x < 7; x++) {
@@ -370,9 +374,9 @@ public class RailroadInk
                 for (int i = 0; i < 4; i++) {
                     String dice = diceRoll.substring(i * 2, i * 2 + 2);
                     String tmp = dice + id.toString();
-                    for (int o =0; o<6; o++) {
+                    for (int o =0; o<10; o++) {
                         String placementString = tmp +o;
-                        if (board.addTile(placementString)) {
+                        if (board.addTile(placementString, true)) {
                             result += placementString;
                         }
                     }
@@ -383,6 +387,8 @@ public class RailroadInk
         /* ============= FIXME*/System.out.println(result);
 
         return result;
+
+
 
     }
 
@@ -396,18 +402,12 @@ public class RailroadInk
      * @author Samuel J. Brookes (u5380100)
      * @param boardString a board string representing a completed game
      * @return integer (positive or negative) for final score (not counting expansion packs)
+     *
+     * @author Samuel J. Brookes (u5380100)
      */
     public static int getAdvancedScore(String boardString) {
         // FIXME Task 12: compute the total score including bonus points
-
-        /* ========================= FIXME*/System.out.println("Game: " + boardString);
-
-        Board board = new Board();
-        for(int i=0; i<boardString.length(); i+=5)
-        {
-            board.addTile(boardString.substring(i, i+5));
-        }
-
+        Board board = new Board(boardString);
         ScoreCalculator sc = new ScoreCalculator(board);
 
         return sc.getAdvancedScore();

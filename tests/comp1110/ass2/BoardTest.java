@@ -39,12 +39,12 @@ public class BoardTest
         dices = new Dices();
         dices.forceType('H');
         board = new Board();
-        board.addTile("B0A10");
-        board.addTile("B0A50");
-        board.addTile("B0D61");
-        board.addTile("B0G52");
-        board.addTile("B0G12");
-        board.addTile("B0D03");
+        board.addTile("B0A10", true);
+        board.addTile("B0A50", true);
+        board.addTile("B0D61", true);
+        board.addTile("B0G52", true);
+        board.addTile("B0G12", true);
+        board.addTile("B0D03", true);
         assertFalse("All routes are roads and all dice are highways. Should be no legal moves!", board.legalMovesRemaining(dices));
 
         /*
@@ -54,12 +54,12 @@ public class BoardTest
         dices = new Dices();
         dices.forceType('R');
         board = new Board();
-        board.addTile("B0A32");
-        board.addTile("B0B63");
-        board.addTile("B0F63");
-        board.addTile("B0G30");
-        board.addTile("B0F01");
-        board.addTile("B0B01");
+        board.addTile("B0A32", true);
+        board.addTile("B0B63", true);
+        board.addTile("B0F63", true);
+        board.addTile("B0G30", true);
+        board.addTile("B0F01", true);
+        board.addTile("B0B01", true);
         assertFalse("All routes are highways and all dice are roads. Should be no legal moves!", board.legalMovesRemaining(dices));
     }
 

@@ -321,15 +321,16 @@ public class Tile
         return selected;
     }
 
-    public char getType()
-    {
-        return getType();
-    }
-
+    /**
+     * This method 'fixes' the current orientation of the tile
+     * so that it has the lowest equivalent orientation for this tile.
+     * For example, if orientation 4 and 1 are identical, this method
+     * will change a tile in orientation 4 to orientation 1.
+     */
     public void fixOrientation()
     {
         switch(id)
-        {
+        { //the method for fixing the orientation depends upon the identity of the tile
             case "S0":
             {
                 mirrorFix();
@@ -407,6 +408,10 @@ public class Tile
         }
     }
 
+    /**
+     * This method reduces all even orientations to orientation 0.
+     * It is applicable to tiles S5, A1, A4 and B2.
+     */
     private void seesawFix()
     {
         if(orientation > 1)
@@ -422,6 +427,10 @@ public class Tile
         }
     }
 
+    /**
+     * This method reduces all T-shaped tiles to a lower orientation.
+     * It is applicable to tiles A2 and A3.
+     */
     private void tPieceFix()
     {
         if(orientation > 3)
@@ -436,6 +445,10 @@ public class Tile
         }
     }
 
+    /**
+     * This method reduces all L-shaped tiles to a lower orientation.
+     * It is applicable to tiles A0 and A5.
+     */
     private void lPieceFix()
     {
         if(orientation > 3)
@@ -450,6 +463,10 @@ public class Tile
         }
     }
 
+    /**
+     * This method shuffles all orientations over 3 back by 4.
+     * It is applicable to tiles S0, S1 and B0.
+     */
     private void mirrorFix()
     {
         if(orientation > 3)

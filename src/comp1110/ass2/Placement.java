@@ -67,23 +67,11 @@ public class Placement
     }
 
     /*
-    * Getter methods for the Placement class.
+    * These are simple getter methods.
     * */
-    public char getType()
-    {
-        return type;
-    }
-    public char getId()
-    {
-        return id;
-    }
     public String getFullId()
     {
         return "" + type + id;
-    }
-    public char getRow()
-    {
-        return row;
     }
     public int getRowAsInt()
     {

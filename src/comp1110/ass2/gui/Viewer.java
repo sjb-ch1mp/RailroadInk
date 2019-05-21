@@ -182,7 +182,7 @@ public class Viewer extends Application {
                 playerData.get(1).diceData.rollDice();
 
                 //Copy the dice data into player two's PlayerData object
-                playerData.get(2).diceData.copyPlayerOneData(playerData.get(1).diceData);
+                playerData.get(2).diceData.copyPlayerDices(playerData.get(1).diceData);
 
                 if(gameMode == 'c')
                 { //add pointer to player data for computer opponent if gameMode is 'c'
@@ -435,7 +435,7 @@ public class Viewer extends Application {
                             gameStage.close(); //relaunch the game stage with player one's data
                             launchGameStage();
                             diceRef.rollDice(); //roll player one's dice
-                            playerData.get(2).diceData.copyPlayerOneData(diceRef); //copy the dices into player two's data
+                            playerData.get(2).diceData.copyPlayerDices(diceRef); //copy the dices into player two's data
                             setUpDiceUI(); //reload the dice UI
                             txtRound.setText("~ Round " + boardRef.getRound() + " ~"); //update the round notifier
                         }
@@ -484,55 +484,11 @@ public class Viewer extends Application {
                             boardRef.iterateRoundCounter(); //iterate player one's round counter
                             specialRef.resetCounterRound(); //reset the specials-used-this-round counter
                             diceRef.rollDice(); //roll the dice
-                            computerOpponent.playerData.diceData.copyPlayerOneData(diceRef);
+                            computerOpponent.playerData.diceData.copyPlayerDices(diceRef);
                             setUpDiceUI(); //reload the dice UI
                             txtRound.setText("~ Round " + boardRef.getRound() + " ~"); //update the round notifier
                         }
                     }
-
-                    /*
-                    if(btnRoll.getText().equals("End Game"))
-                    { //If this is the last round
-                        if(gameMode == 's')
-                        { //Calculate the score and end the game
-                            gameFinished = true;
-                            btnRoll.setVisible(false); //set the roll button to invisible so the player cannot press it
-                            showScoreStage();
-                        }
-                        else
-                        { //gameMode == 'c'
-                            //Calculate the scores, and launch the endGameStage to declare the winner
-                            computerOpponentHaveTurn(true);
-                            gameFinished = true;
-                            btnRoll.setVisible(false); //set the roll button to invisible so the player cannot press it
-                            showScoreStage();
-                        }
-                    }
-
-                    else
-                    { //Otherwise it is not the last round
-                        if(gameMode == 'c')
-                        { //Player one's turn is finished, so the computer opponent has a turn
-
-                            //Everything to do with having a turn (e.g. round counters, tracking specials, etc)
-                            //should be handled within the computer opponent class
-                            computerOpponentHaveTurn(false);
-                            gameStage.hide();
-                        }
-
-                        boardRef.iterateRoundCounter(); //iterate player one's round counter
-                        specialRef.resetCounterRound(); //reset the specials-used-this-round counter
-                        diceRef.rollDice(); //roll the dice
-
-                        if(gameMode == 'c')
-                        { //If there is a computer opponent, copy the dice data into it's playerData
-                            computerOpponent.playerData.diceData.copyPlayerOneData(diceRef);
-                        }
-
-                        setUpDiceUI(); //reload the dice UI
-                        txtRound.setText("~ Round " + boardRef.getRound() + " ~"); //update the round notifier
-                    }
-                    */
                 }
                 else
                 { //Otherwise there are still legal moves that can be made
@@ -665,6 +621,7 @@ public class Viewer extends Application {
             }
             else if(ae.getButton().equals(MouseButton.SECONDARY))
             { //If the right mouse button was click - ROTATE THE TILE
+                selected = null;
                 if(tile.getId().charAt(0) == 'D')
                 { //If the target tile is a dice
                     diceRef.rotateDice(tile.getId()); //rotate the dice
@@ -689,7 +646,7 @@ public class Viewer extends Application {
         tile.setOnMouseClicked(ae ->
         {
             //If there is no placement to be made, do nothing
-            if(gameFinished || placement == null) return;
+            if(gameFinished || placement == null || selected == null) return;
 
             if(ae.getButton().equals(MouseButton.PRIMARY))
             { //If the board tile is clicked with the left mouse button
@@ -698,7 +655,7 @@ public class Viewer extends Application {
 
                 if(selected.charAt(0) == 'D')
                 { //If the selected tile is a dice
-                    if(boardRef.addTile(placement.toString()))
+                    if(boardRef.addTile(placement.toString(), true))
                     { //Add the placement to the player's board (if it is legal)
                         makeBoardProper(); //reload the board
                         diceRef.useDice(selected); //use the placed dice
@@ -715,7 +672,7 @@ public class Viewer extends Application {
                 { //Otherwise the seleted tile is a special tile
                     if(specialRef.getCounterGame() < 3 && specialRef.getCounterRound() == 0)
                     { //if less than 3 special tiles have been used this game and no special tiles have been used this round
-                        if(boardRef.addTile(placement.toString()))
+                        if(boardRef.addTile(placement.toString(), true))
                         { //Add the placement to the player's board (if it is legal)
                             makeBoardProper(); //reload the board
                             specialRef.useSpecialTile(selected); //use the placed special tile
@@ -980,7 +937,13 @@ public class Viewer extends Application {
          }
      }
 
-     private void showScoreStage()
+    /**
+     * This method builds and shows the score stage.
+     * The score stage contains a break down of each players'
+     * score, and allows the board to be viewed and the board
+     * string to be exported for debugging.
+     */
+    private void showScoreStage()
      {
          scoreStage = new Stage();
          scoreStage.setTitle("Scores");
@@ -1069,6 +1032,12 @@ public class Viewer extends Application {
          scoreStage.show();
      }
 
+    /**
+     * This method compiles the player scores from the game
+     * and formats them into a VBox.
+     * @param playerNumber
+     * @return
+     */
      private VBox getPlayerStats(int playerNumber)
      {
          PlayerData player;
@@ -1125,6 +1094,14 @@ public class Viewer extends Application {
          return playerStats;
      }
 
+    /**
+     * This method shows the 'Computer is thinking' window
+     * and hides the game board so that the player can not do anything
+     * while the computer is having a turn.
+     * The computer has it's turn and then the continue button
+     * is made visible so that the player can continue.
+     * @param lastRound
+     */
     private void computerOpponentHaveTurn(boolean lastRound)
     {
         gameStage.hide();
@@ -1158,7 +1135,7 @@ public class Viewer extends Application {
             });
         }
         btnContinue.setVisible(false);
-        computerOpponent.haveTurn(btnContinue);
+        computerOpponent.haveTurn(btnContinue, false);
 
         root.getChildren().addAll(computer, btnContinue);
         root.setAlignment(Pos.CENTER);
@@ -1334,7 +1311,7 @@ public class Viewer extends Application {
                 Board board = new Board();
                 for(int i=0; i<savedGame.length(); i+=5)
                 {
-                    board.addTile(savedGame.substring(i, i+5));
+                    board.addTile(savedGame.substring(i, i+5), true);
                 }
                 ScoreCalculator sc = new ScoreCalculator(board);
                 textWarning.setText("Score: " + sc.getNetworkScore() + " (network) + " +
@@ -1418,6 +1395,9 @@ public class Viewer extends Application {
         tileContainer.getChildren().addAll(btnMenu, innerTileContainer);
     }
 
+    /**
+     * This is the main method for building and launching the viewer mode of the RailroadInk game.
+     */
     private void launchViewer(){
 
         boardData = new Board();
