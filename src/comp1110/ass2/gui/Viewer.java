@@ -32,6 +32,7 @@ import java.util.ArrayList;
 public class Viewer extends Application {
 
     /* GAME ASSETS*/
+    private Stage quitStage;
     private boolean gameFinished = false;
     private Stage gameStage;
     private Stage scoreStage;
@@ -104,7 +105,10 @@ public class Viewer extends Application {
         btnSinglePlayer.setSelected(true);
         Button btnPlay = new Button("Play");
         formatButton(btnPlay);
-        Text txtNotification = new Text();
+        Button btnRules = new Button("Show Rules");
+        formatButton(btnRules);
+
+        btnRules.setOnAction(ae -> launchRulesStage());
 
         /* Choosing different RadioButtons changes the gameMode field.
          * The gameMode field is accessed through the launchGameStage()
@@ -122,14 +126,12 @@ public class Viewer extends Application {
             }
             else if(btnMultiPlayer.isSelected())
             {
-                //txtNotification.setText("Two player under development");
                 gameMode = 'm';
                 player = 1;
                 launchGameStage();
             }
             else if(btnComputer.isSelected())
             {
-                //txtNotification.setText("Computer opponent under development");
                 gameMode = 'c';
                 player = 1;
                 launchGameStage();
@@ -143,15 +145,59 @@ public class Viewer extends Application {
 
         VBox rootLaunch = new VBox();
         rootLaunch.setBackground(new Background(new BackgroundFill(Color.LIGHTBLUE, null, null)));
-        rootLaunch.setSpacing(25);
+        rootLaunch.setSpacing(20);
         rootLaunch.setAlignment(Pos.CENTER);
-        rootLaunch.getChildren().addAll(logo, btnSinglePlayer, btnMultiPlayer, btnComputer, btnViewer, btnPlay, txtNotification);
+        rootLaunch.getChildren().addAll(logo, btnSinglePlayer, btnMultiPlayer, btnComputer, btnViewer, btnPlay, btnRules);
 
         launchStage.setScene(new Scene(rootLaunch, 550, 550));
         launchStage.setResizable(false);
         launchStage.setTitle("Railroad Ink");
 
         return launchStage;
+    }
+
+    private void launchRulesStage()
+    {
+        Stage rulesStage = new Stage();
+        rulesStage.setTitle("Railroad Ink Rules");
+
+        ImageView logo = ImageHandler.getMiscTile("rules");
+        logo.setFitWidth(375);
+        logo.setFitHeight(75);
+
+        VBox root = new VBox();
+        formatBox(root, Color.LAVENDER, 30, false);
+
+        Label labelRules = new Label("THE AIM of Railroad Ink is to create " +
+                "networks of railroads and highways that connect as many exits as possible." +
+                "\n\nEXITS can be seen on the green outer edge of the game board." +
+                "\n\nA TILE can only be placed on the board if there are no illegal connections " +
+                "to other tiles on the board or to an exit." +
+                "\n\nAN ILLEGAL CONNECTION occurs when two edges (or an edge and an exit) meet at different" +
+                " route types, for example, when an edge with a railroad meets an edge with a highway (or vice versa)." +
+                "\n\nYOU GET EXTRA POINTS for placing tiles on the red centre squares and for your longest highway and " +
+                "railroad." +
+                "\n\nYOU LOSE POINTS by having unconnected edges on the board at the end of the game." +
+                "\n\nONLY ONE SPECIAL TILE can be placed each round, and no more than 3 Special tiles can be placed " +
+                "in a game." +
+                "\n\nTO ROTATE A TILE, click on it with the right mouse button." +
+                "\n\nTO PLACE A TILE on the board, click on it with the left mouse button to select" +
+                " it, and then click on the position on the board where you would like it to go." +
+                "\n\nBEWARE! Once you place a tile, you are unable to remove it, so think carefully before making" +
+                " your move.");
+        labelRules.setWrapText(true);
+        labelRules.setFont(Font.font("Garamond", FontWeight.BOLD, 16));
+
+        Button btnClose = new Button("Close");
+        formatButton(btnClose);
+        btnClose.setOnAction(ae ->
+        {
+            rulesStage.close();
+        });
+
+        root.getChildren().addAll(logo, labelRules, btnClose);
+        rulesStage.setScene(new Scene(root, GAME_WIDTH/2, GAME_HEIGHT));
+        rulesStage.show();
     }
 
     /**
@@ -219,7 +265,17 @@ public class Viewer extends Application {
         formatBox(controlsContainer, Color.LIGHTBLUE, 10, false);
         Button btnMenu = new Button("Main Menu");
         formatButton(btnMenu);
-        btnMenu.setOnAction(ae -> quitQuery());
+        btnMenu.setOnAction(ae ->
+                {
+                    if(quitStage == null || !quitStage.isShowing())
+                    {
+                        quitQuery();
+                    }
+                    else if(quitStage.isShowing())
+                    {
+                        quitStage.toFront();
+                    }
+                });
         ImageView logo = ImageHandler.getMiscTile("Logo");
         logo.setFitWidth(180);
         logo.setFitHeight(90);
@@ -249,7 +305,7 @@ public class Viewer extends Application {
      */
     private void quitQuery()
     {
-        Stage quitStage = new Stage();
+        quitStage = new Stage();
         quitStage.setTitle("Return to menu");
         Text txtQuit = new Text("Are you sure you want to quit?");
         formatText(txtQuit, 20, true, false);
@@ -402,6 +458,12 @@ public class Viewer extends Application {
         * */
         btnRoll.setOnAction(ae ->
         {
+            //get rid of quitStage if the player has not closed it
+            if(quitStage != null && quitStage.isShowing())
+            {
+                quitStage.close();
+            }
+
             txtNotification.setText("");
 
             if(gameMode == 'm')
@@ -1299,7 +1361,6 @@ public class Viewer extends Application {
             { //otherwise, do an unchecked placement
                 makePlacement(textField.getText());
                 savedGame = textField.getText();
-                System.out.println("Saved game = " + savedGame);
                 textField.clear();
             }
         });
@@ -1308,11 +1369,7 @@ public class Viewer extends Application {
         {
             if(savedGame != null)
             {
-                Board board = new Board();
-                for(int i=0; i<savedGame.length(); i+=5)
-                {
-                    board.addTile(savedGame.substring(i, i+5), true);
-                }
+                Board board = new Board(savedGame);
                 ScoreCalculator sc = new ScoreCalculator(board);
                 textWarning.setText("Score: " + sc.getNetworkScore() + " (network) + " +
                         sc.getCenterScore() + " (center) + " + sc.getLongestHighway() + " (highway) + " + sc.getLongestRailroad() +
