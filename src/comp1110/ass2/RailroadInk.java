@@ -343,7 +343,7 @@ public class RailroadInk
     ScoreCalculator sc = new ScoreCalculator(board);
     return sc.getBasicScore();
 
-}// only one test not passed, will debug it later.
+}
     /**
      * @author Thoraya Al-Sabti (u6136358)
      * Given a valid boardString and a dice roll for the round,
@@ -360,7 +360,6 @@ public class RailroadInk
         int size = boardString.length() / 5;
         Board board = new Board();
         for (int i = 0; i < size; i++) {
-//            System.out.println("Test: " + boardString.substring(i * 5, i * 5 +5));
             board.addTile(boardString.substring(i * 5, i * 5 + 5), true);
         }
 
@@ -381,9 +380,9 @@ public class RailroadInk
                         coords.append((char) (y + 65));
                         coords.append(x);
 
-                        //String tmp = dice + id.toString();
+
                         for (int o = 0; o < 8; o++) {
-                            //String placementString = tmp + o;
+
 
                             dice.updateOrientation(o);
                             dice.fixOrientation();
@@ -406,7 +405,6 @@ public class RailroadInk
             }
 
         }
-        /* ============= FIXME*/
 
         return result;
     }
