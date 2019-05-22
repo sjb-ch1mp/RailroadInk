@@ -33,9 +33,10 @@ public class Viewer extends Application {
 
     /* GAME ASSETS*/
     private Stage quitStage;
-    private boolean gameFinished = false;
+    private Stage rulesStage;
     private Stage gameStage;
     private Stage scoreStage;
+    private boolean gameFinished = false;
     private static final int GAME_WIDTH = 1024;
     private static final int GAME_HEIGHT = 768;
     private Text txtRound;
@@ -108,7 +109,17 @@ public class Viewer extends Application {
         Button btnRules = new Button("Show Rules");
         formatButton(btnRules);
 
-        btnRules.setOnAction(ae -> launchRulesStage());
+        btnRules.setOnAction(ae ->
+        {
+            if(rulesStage == null || !rulesStage.isShowing())
+            {
+                launchRulesStage();
+            }
+            else if(rulesStage.isShowing())
+            {
+                rulesStage.toFront();
+            }
+        });
 
         /* Choosing different RadioButtons changes the gameMode field.
          * The gameMode field is accessed through the launchGameStage()
@@ -158,7 +169,7 @@ public class Viewer extends Application {
 
     private void launchRulesStage()
     {
-        Stage rulesStage = new Stage();
+        rulesStage = new Stage();
         rulesStage.setTitle("Railroad Ink Rules");
 
         ImageView logo = ImageHandler.getMiscTile("rules");
@@ -1352,6 +1363,12 @@ public class Viewer extends Application {
         textField.setPrefWidth(300);
 
         btnRefresh.setOnAction(e -> {
+            //get rid of quitStage if the player has not closed it
+            if(quitStage != null && quitStage.isShowing())
+            {
+                quitStage.close();
+            }
+
             textWarning.setText(""); //refresh the warning text
             if(textField.getText().equals(""))
             {
@@ -1367,6 +1384,12 @@ public class Viewer extends Application {
 
         btnScore.setOnAction(ae ->
         {
+            //get rid of quitStage if the player has not closed it
+            if(quitStage != null && quitStage.isShowing())
+            {
+                quitStage.close();
+            }
+
             if(savedGame != null)
             {
                 Board board = new Board(savedGame);
@@ -1432,7 +1455,17 @@ public class Viewer extends Application {
 
         //add the menu button
         Button btnMenu = new Button("Main menu");
-        btnMenu.setOnAction(ae -> quitQuery());
+        btnMenu.setOnAction(ae ->
+        {
+            if(quitStage == null || !quitStage.isShowing())
+            {
+                quitQuery();
+            }
+            else if(quitStage.isShowing())
+            {
+                quitStage.toFront();
+            }
+        });
         formatButton(btnMenu);
 
         //clean up the presentation
