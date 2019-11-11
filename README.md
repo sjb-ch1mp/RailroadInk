@@ -1,7 +1,7 @@
 # COMP1110 Assignment 2
 
 ## Academic Honesty and Integrity
-
+ **This is a test commit**
 Honesty and integrity are of utmost importance.
 These goals are *not* at odds with being resourceful and working collaboratively.
 You *should* be resourceful, you should collaborate within your team, and you should discuss the assignment and other aspects of the course with others taking the class.
